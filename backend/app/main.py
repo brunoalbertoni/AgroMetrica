@@ -4,7 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
-from app.routers import auth, imagens, talhoes, uploads, usuarios
+from app.routers import (
+    alertas,
+    auth,
+    diagnosticos,
+    imagens,
+    pragas,
+    prescricoes,
+    produtos,
+    talhoes,
+    uploads,
+    usuarios,
+)
 
 app = FastAPI(title="AgroMétrica API", version="0.1.0")
 
@@ -32,5 +43,17 @@ def health():
     return {"status": "ok"}
 
 
-for _r in (auth.router, usuarios.router, talhoes.router, uploads.router, imagens.router):
+_ROUTERS = (
+    auth.router,
+    usuarios.router,
+    talhoes.router,
+    uploads.router,
+    imagens.router,
+    diagnosticos.router,
+    pragas.router,
+    produtos.router,
+    prescricoes.router,
+    alertas.router,
+)
+for _r in _ROUTERS:
     app.include_router(_r, prefix="/api")

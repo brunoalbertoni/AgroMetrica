@@ -44,6 +44,21 @@ def indice_nome(tipo: TipoImagem) -> str | None:
     return None
 
 
+def representar(img: Imagem) -> dict:
+    return {
+        "id": img.id,
+        "talhao_id": img.talhao_id,
+        "tipo": img.tipo,
+        "status": img.status,
+        "caminho": img.caminho,
+        "caminho_processado": img.caminho_processado,
+        "url": storage.url(img.caminho),
+        "url_processada": storage.url(img.caminho_processado),
+        "indice": indice_nome(img.tipo),
+        "data_captura": img.data_captura,
+    }
+
+
 def calcular_vari(bgr: np.ndarray) -> np.ndarray:
     """VARI = (G − R) / (G + R − B), recortado em [−1, 1]; denominador zero vira 0."""
     b, g, r = (bgr[..., i].astype(np.float32) for i in range(3))

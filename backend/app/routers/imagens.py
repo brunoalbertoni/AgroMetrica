@@ -29,18 +29,7 @@ class ImagemOut(BaseModel):
 
 
 def imagem_out(img: Imagem) -> ImagemOut:
-    return ImagemOut(
-        id=img.id,
-        talhao_id=img.talhao_id,
-        tipo=img.tipo,
-        status=img.status,
-        caminho=img.caminho,
-        caminho_processado=img.caminho_processado,
-        url=storage.url(img.caminho),
-        url_processada=storage.url(img.caminho_processado),
-        indice=svc.indice_nome(img.tipo),
-        data_captura=img.data_captura,
-    )
+    return ImagemOut(**svc.representar(img))
 
 
 @router.post("/imagens", response_model=ImagemOut, status_code=202)
