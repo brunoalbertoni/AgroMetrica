@@ -1,1 +1,12 @@
 .superpowers/
+.venv/
+node_modules/
+.env
+storage/*
+!storage/.gitkeep
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+dist/
+data/raw/
+*.db
