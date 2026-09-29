@@ -1,0 +1,25 @@
+# Limiares do motor de diagnóstico e da janela de aplicação.
+# Altere aqui; nenhum destes valores deve ficar fixo no código.
+
+[ndvi]
+queda_media = 0.15   # queda relativa entre duas leituras → VIGOR MEDIA
+queda_alta = 0.30    # → VIGOR ALTA
+
+[hidrico]
+janela_dias = 7
+limite_mm = -25.0    # balanço hídrico acumulado abaixo disso → HIDRICO MEDIA
+
+[solo]
+ph_min = 5.0
+v_pct_min = 50.0
+p_min = 12.0         # mg/dm³
+k_min = 0.15         # cmolc/dm³
+# fração abaixo do mínimo a partir da qual a severidade vira MEDIA
+fator_media = 0.8
+
+[janela_aplicacao]
+vento_max_kmh = 10.0
+umidade_min = 55.0
+temp_max = 30.0
+horas_sem_chuva = 2
+dias_busca = 7
