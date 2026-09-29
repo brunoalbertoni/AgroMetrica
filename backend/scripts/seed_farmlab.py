@@ -242,14 +242,13 @@ def importar_pragas(db: Session, arquivo: Path) -> None:
     c_dano = _coluna(
         df, "damage_threshold", "limiar_dano", "economic_threshold", "economic_injury_level", "damage"
     )
+    def num(linha, col, padrao):
+        valor = ingestao.converter_numero(linha[col]) if col else None
+        return valor if valor is not None else padrao
+
     for _, linha in df.iterrows():
-
-        def num(col, padrao):
-            valor = ingestao.converter_numero(linha[col]) if col else None
-            return valor if valor is not None else padrao
-
-        alerta = num(c_alerta, 2)
-        controle = num(c_controle, max(alerta, 5))
+        alerta = num(linha, c_alerta, 2)
+        controle = num(linha, c_controle, max(alerta, 5))
         garantir_praga(
             db,
             str(linha[c_nome]).strip(),
@@ -257,7 +256,7 @@ def importar_pragas(db: Session, arquivo: Path) -> None:
             linha[c_cultura] if c_cultura else "Milho",
             alerta,
             controle,
-            num(c_dano, max(controle, 10)),
+            num(linha, c_dano, max(controle, 10)),
         )
 
 
