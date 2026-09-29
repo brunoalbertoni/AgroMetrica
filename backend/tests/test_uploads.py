@@ -82,7 +82,11 @@ def talhao(db):
 
 
 def test_upload_ndvi_por_nome_do_talhao(client, agronomo_token, db, talhao):
-    csv = "field,date,ndvi_mean,ndvi_min,ndvi_max\nGrão 4.0,2024-01-05,0.71,0.5,0.85\nInexistente,2024-01-05,0.5,0.4,0.6\n"
+    csv = (
+        "field,date,ndvi_mean,ndvi_min,ndvi_max\n"
+        "Grão 4.0,2024-01-05,0.71,0.5,0.85\n"
+        "Inexistente,2024-01-05,0.5,0.4,0.6\n"
+    )
     r = _enviar(client, agronomo_token, "ndvi", csv)
     assert r.json()["linhas_ok"] == 1 and r.json()["linhas_erro"] == 1
     assert "Inexistente" in r.json()["erros"][0]["erro"]
