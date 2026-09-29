@@ -1,0 +1,62 @@
+@import 'leaflet/dist/leaflet.css';
+@import 'tailwindcss';
+
+/* Paleta "lavoura": folha do milho para o manejo 4.0, terra para o convencional,
+   pendão (dourado) para atenção e vermelho para dano. */
+@theme {
+  --color-paper: #f6f7f2;
+  --color-panel: #ffffff;
+  --color-ink: #1f2a24;
+  --color-muted: #5d6b62;
+  --color-line: #d8ddd3;
+  --color-canopy: #2f6b3f;
+  --color-canopy-dark: #1d4a2a;
+  --color-canopy-soft: #e3eee4;
+  --color-soil: #7a5c3e;
+  --color-soil-soft: #efe7de;
+  --color-straw: #d9a21b;
+  --color-straw-soft: #fbf1d6;
+  --color-alarm: #c2362b;
+  --color-alarm-soft: #f9e1de;
+
+  --font-display: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+  --font-sans: 'Public Sans', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display text-ink;
+    line-height: 1.15;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-canopy);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #e9ece4;
+}
