@@ -14,12 +14,15 @@ Pré-requisitos: Python 3.12+, Node.js 20+, Docker Desktop.
 ```powershell
 # 1. Banco (MySQL 8 na porta 3307 do host, para não conflitar com um MySQL local na 3306)
 copy .env.example .env
+# edite o .env e troque JWT_SECRET; para gerar um valor:
+python -c "import secrets; print(secrets.token_urlsafe(48))"
 docker compose up -d
+docker compose ps                       # espere o serviço db aparecer como (healthy), ~30 s na 1ª vez
 
 # 2. Backend
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate                  # se o PowerShell bloquear: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r requirements.txt
 alembic upgrade head
 python -m scripts.seed_farmlab          # usa data/raw/farmlab se existir; senão, dados de demonstração
@@ -30,6 +33,9 @@ cd frontend
 npm install
 npm run dev                             # http://localhost:5173
 ```
+
+Sem um `JWT_SECRET` próprio no `.env`, a API usa um segredo aleatório a cada início (e avisa no log):
+os logins caem sempre que o servidor reinicia.
 
 Usuários criados pelo seed (troque as senhas fora do ambiente de desenvolvimento):
 

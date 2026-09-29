@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.security import criar_token, hash_senha, verificar_senha
 from app.models import Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioUpdate
+from app.services.exclusao import excluir
 
 
 def autenticar(db: Session, email: str, senha: str) -> tuple[str, Usuario]:
@@ -59,5 +60,5 @@ def atualizar(db: Session, usuario_id: int, dados: UsuarioUpdate) -> Usuario:
 
 
 def remover(db: Session, usuario_id: int) -> None:
-    db.delete(obter(db, usuario_id))
-    db.commit()
+    motivo = "Usuário tem histórico (envios, imagens ou aprovações). Bloqueie o acesso em vez de excluir."
+    excluir(db, obter(db, usuario_id), motivo)

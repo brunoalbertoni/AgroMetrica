@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import Severidade, StatusPrescricao, TipoDiagnostico
 from app.schemas.catalogo import ProdutoOut
@@ -63,6 +63,12 @@ class ArmadilhaIn(BaseModel):
     data: datetime | None = None
     imagem_id: int | None = None
     bboxes: list[BBox] = []
+
+    @field_validator("data")
+    @classmethod
+    def _sem_fuso(cls, v: datetime | None) -> datetime | None:
+        # o banco guarda horários locais sem fuso; "…Z" vira o horário local equivalente
+        return v.astimezone().replace(tzinfo=None) if v is not None and v.tzinfo else v
 
 
 class AlertaOut(BaseModel):

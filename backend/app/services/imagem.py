@@ -7,9 +7,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 import rasterio
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
-from app.models import Imagem, MetricaTalhao
+from app.models import Imagem, MetricaTalhao, Talhao
 from app.models.enums import StatusImagem, TipoImagem
 from app.services import storage
 from app.services.upsert import upsert
@@ -42,6 +44,53 @@ def indice_nome(tipo: TipoImagem) -> str | None:
     if tipo == TipoImagem.NDVI_GEOTIFF:
         return "NDVI"
     return None
+
+
+EXTENSOES = {
+    TipoImagem.FOLHA: {".jpg", ".jpeg", ".png"},
+    TipoImagem.ORTOMOSAICO: {".jpg", ".jpeg", ".png", ".tif", ".tiff"},
+    TipoImagem.ARMADILHA: {".jpg", ".jpeg", ".png"},
+    TipoImagem.NDVI_GEOTIFF: {".tif", ".tiff"},
+}
+
+
+def sem_fuso(momento: datetime | None) -> datetime | None:
+    """Converte datas com fuso para o horário local sem fuso (o banco guarda datas ingênuas)."""
+    if momento is None or momento.tzinfo is None:
+        return momento
+    return momento.astimezone().replace(tzinfo=None)
+
+
+def receber(
+    db: Session,
+    conteudo: bytes,
+    nome_arquivo: str,
+    talhao_id: int,
+    tipo: TipoImagem,
+    data_captura: datetime | None,
+    usuario_id: int,
+) -> Imagem:
+    """Valida e grava a imagem enviada; o processamento roda depois, em segundo plano."""
+    if db.get(Talhao, talhao_id) is None:
+        raise HTTPException(404, "Talhão não encontrado")
+    extensao = Path(nome_arquivo).suffix.lower()
+    if extensao not in EXTENSOES[tipo]:
+        aceitas = ", ".join(sorted(EXTENSOES[tipo]))
+        raise HTTPException(
+            400, f"Formato {extensao or 'sem extensão'} não aceito para {tipo.value}. Use {aceitas}."
+        )
+    img = Imagem(
+        talhao_id=talhao_id,
+        tipo=tipo,
+        caminho=storage.salvar(conteudo, "originais", nome_arquivo),
+        data_captura=sem_fuso(data_captura) or datetime.now(),
+        status=StatusImagem.PENDENTE,
+        enviado_por=usuario_id,
+    )
+    db.add(img)
+    db.commit()
+    db.refresh(img)
+    return img
 
 
 def representar(img: Imagem) -> dict:

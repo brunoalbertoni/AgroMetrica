@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Praga, Produto
 from app.schemas.catalogo import PragaCreate, PragaUpdate, ProdutoCreate, ProdutoUpdate
+from app.services.exclusao import excluir
 
 
 def _obter(db: Session, modelo, item_id: int, nome: str):
@@ -58,8 +59,7 @@ def atualizar_praga(db: Session, praga_id: int, dados: PragaUpdate) -> Praga:
 
 
 def remover_praga(db: Session, praga_id: int) -> None:
-    db.delete(obter_praga(db, praga_id))
-    db.commit()
+    excluir(db, obter_praga(db, praga_id), "Praga tem diagnósticos registrados e não pode ser excluída")
 
 
 def listar_produtos(db: Session) -> list[Produto]:
@@ -95,5 +95,4 @@ def atualizar_produto(db: Session, produto_id: int, dados: ProdutoUpdate) -> Pro
 
 
 def remover_produto(db: Session, produto_id: int) -> None:
-    db.delete(obter_produto(db, produto_id))
-    db.commit()
+    excluir(db, obter_produto(db, produto_id), "Produto já aparece em prescrições e não pode ser excluído")

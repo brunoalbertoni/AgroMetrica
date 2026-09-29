@@ -27,6 +27,7 @@ class Coluna:
     obrigatoria: bool = False
     tipo: str = "float"  # float | int | str | data | datahora
     fator: dict[str, float] = field(default_factory=dict)  # apelido → fator de conversão
+    max_len: int | None = None  # texto maior que a coluna do banco vira erro da linha
 
 
 _TALHAO = Coluna(
@@ -81,7 +82,9 @@ MAPAS: dict[TipoUpload, dict[str, Coluna]] = {
     },
     TipoUpload.SOLO: {
         "talhao_id": _TALHAO,
-        "ponto": Coluna(("ponto", "point", "sample", "amostra", "sample_id", "ponto_id"), True, "str"),
+        "ponto": Coluna(
+            ("ponto", "point", "sample", "amostra", "sample_id", "ponto_id"), True, "str", max_len=40
+        ),
         "data_coleta": Coluna(
             ("data_coleta", "data", "date", "sampling_date", "collection_date"), True, "data"
         ),
@@ -195,7 +198,11 @@ def _converter_linha(bruta: dict, mapa, resolvidas, talhoes) -> dict:
         elif tipo == "str":
             if valor is None or str(valor).strip() == "" or str(valor) == "nan":
                 raise ValueError(f"{canonico} vazio")
-            linha[canonico] = str(valor).strip()
+            texto = str(valor).strip()
+            limite = mapa[canonico].max_len
+            if limite and len(texto) > limite:
+                raise ValueError(f"{canonico} com mais de {limite} caracteres")
+            linha[canonico] = texto
         else:
             try:
                 numero = converter_numero(valor)
@@ -304,7 +311,7 @@ def importar(
         db.add(
             Upload(
                 usuario_id=usuario_id,
-                nome_arquivo=nome_arquivo,
+                nome_arquivo=nome_arquivo[:255],
                 tipo=tipo,
                 linhas_ok=len(validas),
                 linhas_erro=len(erros),
