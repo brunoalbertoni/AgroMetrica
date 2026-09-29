@@ -7,7 +7,7 @@ services:
       MYSQL_DATABASE: agrometrica
       MYSQL_ROOT_PASSWORD: root
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    ports: ["3306:3306"]
+    ports: ["3307:3306"]
     volumes: [dbdata:/var/lib/mysql]
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uagro", "-pagro"]

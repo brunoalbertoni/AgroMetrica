@@ -23,7 +23,7 @@ docker-compose: serviço `db` com `mysql:8`, usuário/senha `agro`, banco `agrom
 
 .env.example:
 ```
-DATABASE_URL=mysql+pymysql://agro:agro@localhost:3306/agrometrica
+DATABASE_URL=mysql+pymysql://agro:agro@localhost:3307/agrometrica
 JWT_SECRET=troque-isto
 JWT_EXPIRES_MIN=480
 STORAGE_DIR=../storage
