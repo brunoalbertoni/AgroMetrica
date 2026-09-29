@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.routers import (
     alertas,
     auth,
+    dashboard,
     diagnosticos,
     imagens,
     pragas,
@@ -54,6 +55,7 @@ _ROUTERS = (
     produtos.router,
     prescricoes.router,
     alertas.router,
+    dashboard.router,
 )
 for _r in _ROUTERS:
     app.include_router(_r, prefix="/api")
