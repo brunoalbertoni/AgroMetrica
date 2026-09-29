@@ -242,6 +242,7 @@ def importar_pragas(db: Session, arquivo: Path) -> None:
     c_dano = _coluna(
         df, "damage_threshold", "limiar_dano", "economic_threshold", "economic_injury_level", "damage"
     )
+
     def num(linha, col, padrao):
         valor = ingestao.converter_numero(linha[col]) if col else None
         return valor if valor is not None else padrao

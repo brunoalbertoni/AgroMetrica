@@ -107,6 +107,15 @@ def test_solo_com_classificacao(client, agronomo_token, talhoes, db):
     assert r[0]["classificacao"]["p"] == "ADEQUADO"
 
 
+def test_ultima_metrica_ignora_linha_so_de_colheita(client, agronomo_token, talhoes, db):
+    # a colheita (sem NDVI) é a linha mais recente, mas o detalhe deve mostrar a última leitura de NDVI
+    db.add(MetricaTalhao(talhao_id=talhoes[0].id, data=date(2024, 3, 20), produtividade_kg_ha=11000))
+    db.commit()
+    r = client.get(f"/api/talhoes/{talhoes[0].id}", headers=auth(agronomo_token)).json()
+    assert r["ultima_metrica"]["data"] == "2024-01-05"
+    assert r["ultima_metrica"]["ndvi_medio"] == 0.6
+
+
 def test_clima_agregado_por_dia(client, agronomo_token, db):
     db.add_all(
         [

@@ -65,11 +65,18 @@ export default function AlertBar() {
         <ul className="absolute inset-x-0 top-full z-[1100] max-h-[60vh] overflow-y-auto border-b border-line bg-panel shadow-lg md:left-8 md:right-auto md:w-[640px] md:rounded-b-md md:border-x">
           {alertas.map((a) => (
             <li key={a.id} className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-0">
-              <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${TOM[a.severidade]?.ponto}`} aria-hidden />
-              <button type="button" onClick={() => abrir(a)} className="min-w-0 flex-1 text-left text-sm hover:text-canopy">
+              <span
+                className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${TOM[a.severidade]?.ponto}`}
+                aria-hidden
+              />
+              <button
+                type="button"
+                onClick={() => abrir(a)}
+                className="min-w-0 flex-1 text-left text-sm hover:text-canopy"
+              >
                 <span className="block">{a.mensagem}</span>
                 <span className="text-xs text-muted">
-                  {dataCurta(a.criado_em)} · nível de {TOM[a.severidade]?.rotulo}
+                  {dataCurta(a.criado_em)}, nível de {TOM[a.severidade]?.rotulo}
                 </span>
               </button>
               <button

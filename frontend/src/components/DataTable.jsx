@@ -6,7 +6,15 @@ import { useState } from 'react'
  * - Paginação no servidor: passe `paginacao = { page, size, total, onPage }` e `sort/onSort`.
  * - Sem `paginacao`, ordena no cliente.
  */
-export default function DataTable({ colunas, dados, paginacao, sort, onSort, vazio = 'Nenhum registro.', onLinha }) {
+export default function DataTable({
+  colunas,
+  dados,
+  paginacao,
+  sort,
+  onSort,
+  vazio = 'Nenhum registro.',
+  onLinha,
+}) {
   const servidor = Boolean(onSort)
   const [sortingLocal, setSortingLocal] = useState([])
   const sorting = servidor

@@ -30,7 +30,8 @@ export function Panel({ titulo, acao, children, className = '' }) {
 
 const VARIANTES = {
   primario: 'bg-canopy text-white hover:bg-canopy-dark disabled:bg-canopy/50',
-  secundario: 'border border-line bg-panel text-ink hover:border-canopy hover:text-canopy disabled:opacity-50',
+  secundario:
+    'border border-line bg-panel text-ink hover:border-canopy hover:text-canopy disabled:opacity-50',
   perigo: 'border border-alarm/40 bg-panel text-alarm hover:bg-alarm-soft disabled:opacity-50',
   texto: 'text-canopy hover:underline disabled:opacity-50',
 }
@@ -67,14 +68,22 @@ export function SeverityBadge({ severidade }) {
     MEDIA: 'bg-straw text-ink',
     BAIXA: 'bg-line text-ink',
   }[severidade]
-  return <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold ${estilo}`}>{SEVERIDADE[severidade]}</span>
+  return (
+    <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold ${estilo}`}>
+      {SEVERIDADE[severidade]}
+    </span>
+  )
 }
 
 export function SistemaTag({ sistema }) {
-  const cor = sistema === 'AGRO_4_0' ? 'border-canopy text-canopy' : 'border-soil text-soil'
+  const cor = sistema === 'AGRO_4_0' ? 'border-serie-40 text-serie-40' : 'border-serie-conv text-serie-conv'
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 text-xs font-medium ${cor}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${sistema === 'AGRO_4_0' ? 'bg-canopy' : 'bg-soil'}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 text-xs font-medium ${cor}`}
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${sistema === 'AGRO_4_0' ? 'bg-serie-40' : 'bg-serie-conv'}`}
+      />
       {SISTEMA[sistema] ?? sistema}
     </span>
   )
@@ -130,7 +139,12 @@ export function Modal({ aberto, titulo, onFechar, children }) {
     >
       <div className="flex items-center justify-between border-b border-line px-5 py-3">
         <h2 className="text-xl font-semibold">{titulo}</h2>
-        <button type="button" onClick={onFechar} className="rounded px-2 text-2xl leading-none text-muted hover:text-ink" aria-label="Fechar">
+        <button
+          type="button"
+          onClick={onFechar}
+          className="rounded px-2 text-2xl leading-none text-muted hover:text-ink"
+          aria-label="Fechar"
+        >
           ×
         </button>
       </div>

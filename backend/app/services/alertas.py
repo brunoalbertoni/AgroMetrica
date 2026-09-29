@@ -8,6 +8,14 @@ from app.models.enums import Severidade, TipoDiagnostico
 GERAM_ALERTA = {Severidade.MEDIA, Severidade.ALTA}
 
 
+def _num(valor, casas: int = 1) -> str:
+    """Número no padrão brasileiro (vírgula decimal, sinal de menos tipográfico)."""
+    if not isinstance(valor, (int, float)):
+        return "?"
+    texto = f"{abs(valor):,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"−{texto}" if valor < 0 else texto
+
+
 def mensagem(db: Session, diag: Diagnostico) -> str:
     talhao = db.get(Talhao, diag.talhao_id)
     d = diag.detalhes or {}
@@ -17,13 +25,13 @@ def mensagem(db: Session, diag: Diagnostico) -> str:
         nivel = {"ALTA": "nível de dano", "MEDIA": "nível de controle"}.get(
             diag.severidade, "nível de alerta"
         )
-        return (
-            f"{praga.nome if praga else 'Praga'}: {nivel} ({d.get('contagem', '?')} na armadilha) em {nome}"
-        )
+        contagem = _num(d.get("contagem"), 0)
+        return f"{praga.nome if praga else 'Praga'}: {nivel} ({contagem} na armadilha) em {nome}"
     if diag.tipo == TipoDiagnostico.VIGOR:
-        return f"Queda de {d.get('queda_pct', '?')}% no NDVI em {nome}"
+        return f"Queda de {_num(d.get('queda_pct'))}% no NDVI em {nome}"
     if diag.tipo == TipoDiagnostico.HIDRICO:
-        return f"Déficit hídrico de {d.get('balanco_mm', '?')} mm em {d.get('janela_dias', 7)} dias em {nome}"
+        balanco = _num(d.get("balanco_mm"))
+        return f"Déficit hídrico de {balanco} mm em {d.get('janela_dias', 7)} dias em {nome}"
     return f"Problema nutricional no solo de {nome}"
 
 

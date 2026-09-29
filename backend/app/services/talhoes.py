@@ -18,12 +18,11 @@ def obter(db: Session, talhao_id: int) -> Talhao:
 
 
 def ultima_metrica(db: Session, talhao_id: int) -> MetricaTalhao | None:
-    return db.scalar(
-        select(MetricaTalhao)
-        .where(MetricaTalhao.talhao_id == talhao_id)
-        .order_by(MetricaTalhao.data.desc())
-        .limit(1)
+    """Última leitura de NDVI (linhas só de colheita não contam); sem NDVI, a linha mais recente."""
+    base = (
+        select(MetricaTalhao).where(MetricaTalhao.talhao_id == talhao_id).order_by(MetricaTalhao.data.desc())
     )
+    return db.scalar(base.where(MetricaTalhao.ndvi_medio.is_not(None)).limit(1)) or db.scalar(base.limit(1))
 
 
 def _subquery_ultimo_balanco():

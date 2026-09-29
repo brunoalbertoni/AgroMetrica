@@ -66,7 +66,11 @@ export default function Layout() {
         <div className="hidden border-t border-white/15 px-5 py-4 text-sm md:block">
           <p className="font-medium">{usuario?.nome}</p>
           <p className="text-white/70">{PERFIL[usuario?.perfil]}</p>
-          <button type="button" onClick={sair} className="mt-2 text-white/80 underline-offset-2 hover:text-white hover:underline">
+          <button
+            type="button"
+            onClick={sair}
+            className="mt-2 text-white/80 underline-offset-2 hover:text-white hover:underline"
+          >
             Sair
           </button>
         </div>

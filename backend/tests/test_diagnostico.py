@@ -104,6 +104,20 @@ def test_rodar_gera_diagnosticos_e_alertas(db, talhao):
     assert len(db.scalars(select(Diagnostico)).all()) == 3
 
 
+def test_mensagens_usam_virgula_decimal(db, talhao):
+    from app.services.alertas import mensagem
+
+    vigor = Diagnostico(talhao_id=talhao.id, tipo="VIGOR", severidade="MEDIA", detalhes={"queda_pct": 20.0})
+    hidrico = Diagnostico(
+        talhao_id=talhao.id,
+        tipo="HIDRICO",
+        severidade="MEDIA",
+        detalhes={"balanco_mm": -33.6, "janela_dias": 7},
+    )
+    assert mensagem(db, vigor) == "Queda de 20,0% no NDVI em Grão 4.0"
+    assert mensagem(db, hidrico) == "Déficit hídrico de −33,6 mm em 7 dias em Grão 4.0"
+
+
 def test_endpoint_rodar_exige_agronomo(client, admin_token, agronomo_token, talhao):
     r = client.post(f"/api/diagnosticos/rodar/{talhao.id}", headers=auth(agronomo_token))
     assert r.status_code == 200

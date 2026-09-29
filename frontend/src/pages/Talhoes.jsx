@@ -36,7 +36,11 @@ export default function Talhoes() {
     sistema: sistema || undefined,
     deficit_min: deficit || undefined,
   }
-  const { data: pagina, isLoading, error } = useQuery({
+  const {
+    data: pagina,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['talhoes', params],
     queryFn: () => listarTalhoes(params),
     placeholderData: keepPreviousData,
@@ -48,12 +52,20 @@ export default function Talhoes() {
         accessorKey: 'nome',
         header: 'Talhão',
         cell: ({ row }) => (
-          <Link to={`/talhoes/${row.original.id}`} className="font-medium text-ink hover:text-canopy" onClick={(e) => e.stopPropagation()}>
+          <Link
+            to={`/talhoes/${row.original.id}`}
+            className="font-medium text-ink hover:text-canopy"
+            onClick={(e) => e.stopPropagation()}
+          >
             {row.original.nome}
           </Link>
         ),
       },
-      { accessorKey: 'sistema', header: 'Sistema', cell: ({ getValue }) => <SistemaTag sistema={getValue()} /> },
+      {
+        accessorKey: 'sistema',
+        header: 'Sistema',
+        cell: ({ getValue }) => <SistemaTag sistema={getValue()} />,
+      },
       { accessorKey: 'finalidade', header: 'Finalidade', cell: ({ getValue }) => FINALIDADE[getValue()] },
       { accessorKey: 'cultura', header: 'Cultura' },
       {
@@ -97,7 +109,10 @@ export default function Talhoes() {
 
   return (
     <>
-      <PageHeader titulo="Talhões" descricao="Situação de cada talhão pela última leitura de NDVI e de balanço hídrico." />
+      <PageHeader
+        titulo="Talhões"
+        descricao="Situação de cada talhão pela última leitura de NDVI e de balanço hídrico."
+      />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_200px_200px]">
         <Field label="Buscar">

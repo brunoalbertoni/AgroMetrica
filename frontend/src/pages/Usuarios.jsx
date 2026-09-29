@@ -32,7 +32,10 @@ function FormUsuario({ inicial, onSalvar, salvando, erro }) {
       <Field label="E-mail">
         <input required type="email" value={form.email} onChange={campo('email')} className={inputClass} />
       </Field>
-      <Field label={novo ? 'Senha' : 'Nova senha'} dica={novo ? 'Mínimo de 6 caracteres.' : 'Deixe em branco para manter a atual.'}>
+      <Field
+        label={novo ? 'Senha' : 'Nova senha'}
+        dica={novo ? 'Mínimo de 6 caracteres.' : 'Deixe em branco para manter a atual.'}
+      >
         <input
           type="password"
           required={novo}
@@ -50,7 +53,12 @@ function FormUsuario({ inicial, onSalvar, salvando, erro }) {
         </select>
       </Field>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={form.ativo} onChange={campo('ativo')} className="h-4 w-4 accent-canopy" />
+        <input
+          type="checkbox"
+          checked={form.ativo}
+          onChange={campo('ativo')}
+          className="h-4 w-4 accent-canopy"
+        />
         Pode entrar no sistema
       </label>
       <ErrorMessage>{erro}</ErrorMessage>
