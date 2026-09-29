@@ -211,7 +211,11 @@ def _converter_linha(bruta: dict, mapa, resolvidas, talhoes) -> dict:
 
 
 def ler_linhas(
-    db: Session, tipo: TipoUpload, conteudo: bytes, nome_arquivo: str
+    db: Session,
+    tipo: TipoUpload,
+    conteudo: bytes,
+    nome_arquivo: str,
+    apelidos_talhao: dict[str, int] | None = None,
 ) -> tuple[list[dict], list[dict]]:
     """Lê e valida o arquivo. Devolve (linhas válidas já convertidas, erros por linha)."""
     try:
@@ -226,6 +230,9 @@ def ler_linhas(
         raise HTTPException(400, f"Colunas obrigatórias ausentes: {', '.join(faltando)}")
 
     talhoes = _mapa_talhoes(db) if "talhao_id" in mapa else {}
+    for apelido, talhao_id in (apelidos_talhao or {}).items():
+        talhoes.setdefault(str(apelido), talhao_id)
+        talhoes.setdefault(normalizar(apelido), talhao_id)
     validas, erros = [], []
     for i, bruta in enumerate(df.to_dict(orient="records")):
         numero_linha = i + 2  # linha 1 é o cabeçalho
@@ -283,9 +290,15 @@ def atualizar_balanco_hidrico(db: Session, janela_dias: int | None = None) -> No
 
 
 def importar(
-    db: Session, tipo: TipoUpload, conteudo: bytes, nome_arquivo: str, usuario_id: int | None
+    db: Session,
+    tipo: TipoUpload,
+    conteudo: bytes,
+    nome_arquivo: str,
+    usuario_id: int | None,
+    apelidos_talhao: dict[str, int] | None = None,
 ) -> dict:
-    validas, erros = ler_linhas(db, tipo, conteudo, nome_arquivo)
+    """apelidos_talhao: identificadores extras (ex.: id do talhão no FarmLab) → id no banco."""
+    validas, erros = ler_linhas(db, tipo, conteudo, nome_arquivo, apelidos_talhao)
     _gravar(db, tipo, validas)
     if usuario_id is not None:
         db.add(

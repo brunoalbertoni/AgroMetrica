@@ -69,11 +69,15 @@ def avaliar_solo(leitura: LeituraSolo, regras: dict) -> tuple[Severidade | None,
     return severidade, problemas
 
 
-def _ja_existe(db: Session, talhao_id: int, tipo: TipoDiagnostico, chave: str) -> bool:
+def _buscar(db: Session, talhao_id: int, tipo: TipoDiagnostico, chave: str) -> Diagnostico | None:
     existentes = db.scalars(
-        select(Diagnostico.detalhes).where(Diagnostico.talhao_id == talhao_id, Diagnostico.tipo == tipo)
+        select(Diagnostico).where(Diagnostico.talhao_id == talhao_id, Diagnostico.tipo == tipo)
     )
-    return any((d or {}).get("chave") == chave for d in existentes)
+    return next((d for d in existentes if (d.detalhes or {}).get("chave") == chave), None)
+
+
+def _ja_existe(db: Session, talhao_id: int, tipo: TipoDiagnostico, chave: str) -> bool:
+    return _buscar(db, talhao_id, tipo, chave) is not None
 
 
 def _criar(
@@ -114,8 +118,12 @@ def registrar_armadilha(
     severidade = classificar_praga(contagem, praga)
     if severidade is None:
         return None
+    chave = f"PRAGA:{praga_id}:{imagem_id or ''}:{data.isoformat()}"
+    existente = _buscar(db, talhao_id, TipoDiagnostico.PRAGA, chave)
+    if existente is not None:
+        return existente
     detalhes = {
-        "chave": f"PRAGA:{praga_id}:{imagem_id or ''}:{data.isoformat()}",
+        "chave": chave,
         "contagem": contagem,
         "data": data.isoformat(),
         "limiares": {
