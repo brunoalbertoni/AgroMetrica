@@ -108,12 +108,24 @@ def _bloco(db: Session, talhao: Talhao) -> dict:
         }
         for d in diags
     ]
+    operacoes = [
+        {
+            "operacao": o.operacao,
+            "data_inicio": o.data_inicio,
+            "area_ha": o.area_ha,
+            "dose_aplicada": o.dose_aplicada,
+            "dose_configurada": o.dose_configurada,
+            "unidade": o.unidade,
+        }
+        for o in talhoes_svc.operacoes(db, talhao.id)
+    ]
     valores_ndvi = [p["ndvi_medio"] for p in ndvi]
     return {
-        "talhao": _talhao_basico(talhao),
+        "talhao": {**_talhao_basico(talhao), "data_plantio": talhao.data_plantio},
         "ndvi": ndvi,
         "produtividade": produtividade,
         "pragas": pragas,
+        "operacoes": operacoes,
         "indicadores": {
             "ndvi_medio_periodo": round(sum(valores_ndvi) / len(valores_ndvi), 3) if valores_ndvi else None,
             "ndvi_maximo": max(valores_ndvi) if valores_ndvi else None,

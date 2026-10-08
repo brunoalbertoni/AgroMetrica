@@ -5,7 +5,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models import LeituraClima, LeituraSolo, MetricaTalhao, Talhao
+from app.models import Imagem, LeituraClima, LeituraSolo, MetricaTalhao, OperacaoTalhao, Talhao
+from app.models.enums import TipoImagem
 
 CAMPOS_ORDENACAO = {"id", "nome", "area_ha", "cultura", "sistema", "finalidade"}
 
@@ -92,6 +93,25 @@ def metricas(db: Session, talhao_id: int, de: date | None, ate: date | None) -> 
     if ate:
         consulta = consulta.where(MetricaTalhao.data <= ate)
     return list(db.scalars(consulta.order_by(MetricaTalhao.data)))
+
+
+def operacoes(db: Session, talhao_id: int) -> list[OperacaoTalhao]:
+    obter(db, talhao_id)
+    return list(
+        db.scalars(
+            select(OperacaoTalhao)
+            .where(OperacaoTalhao.talhao_id == talhao_id)
+            .order_by(OperacaoTalhao.data_inicio, OperacaoTalhao.operacao)
+        )
+    )
+
+
+def imagens(db: Session, talhao_id: int, tipo: TipoImagem | None) -> list[Imagem]:
+    obter(db, talhao_id)
+    consulta = select(Imagem).where(Imagem.talhao_id == talhao_id)
+    if tipo:
+        consulta = consulta.where(Imagem.tipo == tipo)
+    return list(db.scalars(consulta.order_by(Imagem.data_captura, Imagem.id)))
 
 
 def classificar_solo(leitura: LeituraSolo) -> dict[str, str]:

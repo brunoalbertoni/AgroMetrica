@@ -42,6 +42,7 @@ MAPAS: dict[TipoUpload, dict[str, Coluna]] = {
         "temp_med": Coluna(
             (
                 "temp_med",
+                "temp_media",
                 "temperatura_media",
                 "temperatura",
                 "hc_air_temperature_avg",
@@ -52,10 +53,10 @@ MAPAS: dict[TipoUpload, dict[str, Coluna]] = {
             True,
         ),
         "temp_min": Coluna(
-            ("temp_min", "temperatura_minima", "hc_air_temperature_min", "air_temperature_min")
+            ("temp_min", "temp_minima", "temperatura_minima", "hc_air_temperature_min", "air_temperature_min")
         ),
         "temp_max": Coluna(
-            ("temp_max", "temperatura_maxima", "hc_air_temperature_max", "air_temperature_max")
+            ("temp_max", "temp_maxima", "temperatura_maxima", "hc_air_temperature_max", "air_temperature_max")
         ),
         "chuva_mm": Coluna(
             ("chuva_mm", "chuva", "precipitacao", "precipitation_sum", "precipitation", "rain", "rainfall"),
@@ -64,6 +65,7 @@ MAPAS: dict[TipoUpload, dict[str, Coluna]] = {
         "umidade_med": Coluna(
             (
                 "umidade_med",
+                "umidade_rel_media",
                 "umidade",
                 "umidade_relativa",
                 "hc_relative_humidity_avg",
@@ -72,10 +74,12 @@ MAPAS: dict[TipoUpload, dict[str, Coluna]] = {
             )
         ),
         "vento_kmh": Coluna(
-            ("vento_kmh", "vento", "vento_ms", "wind_speed_avg", "wind_speed"),
+            ("vento_kmh", "vel_do_vento_media", "vento", "vento_ms", "wind_speed_avg", "wind_speed"),
             fator={"vento_ms": 3.6, "wind_speed_avg": 3.6, "wind_speed": 3.6},
         ),
-        "radiacao": Coluna(("radiacao", "solar_radiation_avg", "solar_radiation", "radiation")),
+        "radiacao": Coluna(
+            ("radiacao", "radiacao_solar", "solar_radiation_avg", "solar_radiation", "radiation")
+        ),
         "etp_mm": Coluna(
             ("etp_mm", "etp", "eto", "eto_mm", "et0", "evapotranspiration", "evapotranspiracao")
         ),
@@ -146,6 +150,8 @@ def converter_data(valor, com_hora: bool) -> datetime | date:
     if valor is None or str(valor).strip() == "":
         raise ValueError("data vazia")
     texto = str(valor).strip()
+    # Metos: "01/11/2025 - 00:00 / GMT - 03:00" (horário local da estação)
+    texto = re.sub(r"^(\d{2}/\d{2}/\d{4})\s+-\s+(\d{1,2}:\d{2})\s*/.*$", r"\1 \2", texto)
     iso = re.match(r"^\d{4}-\d{2}-\d{2}", texto) is not None
     ts = pd.to_datetime(texto, dayfirst=not iso, errors="coerce")
     if pd.isna(ts):

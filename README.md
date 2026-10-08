@@ -25,7 +25,7 @@ python -m venv .venv
 .venv\Scripts\activate                  # se o PowerShell bloquear: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r requirements.txt
 alembic upgrade head
-python -m scripts.seed_farmlab          # usa data/raw/farmlab se existir; senão, dados de demonstração
+python -m scripts.seed_farmlab --limpar # importa data/raw/farmlab (ver "Dados do FarmLab")
 uvicorn app.main:app --reload           # http://localhost:8000/docs
 
 # 3. Frontend (outro terminal)
@@ -46,22 +46,30 @@ Usuários criados pelo seed (troque as senhas fora do ambiente de desenvolviment
 
 ## Dados do FarmLab
 
-Coloque os arquivos em `data/raw/farmlab/` (a pasta fica fora do git) e rode `python -m scripts.seed_farmlab`.
-O seed procura, em qualquer subpasta:
+O sistema não tem dados inventados: tudo vem do dataset FarmLab. Coloque as pastas do dataset em
+`data/raw/farmlab/` (fica fora do git) e rode `python -m scripts.seed_farmlab`. Os arquivos são procurados
+em qualquer subpasta:
 
 | Arquivo | Vira |
 |---|---|
-| `fields.csv` | talhões (nome, área, sistema 4.0/convencional, grão/silagem, geometria WKT) |
-| `pest_details.csv` | pragas e limiares de alerta, controle e dano |
-| `*metos*.csv/xlsx` | clima horário |
-| `*cropman*.csv/xlsx` | análises de solo |
-| `ndvi_metadata.csv` | NDVI por talhão e data |
-| `*ekos*.csv/xlsx` | produtividade (camada de colheita, agregada por talhão) |
-| `traps_events.csv` + imagens | diagnósticos de praga com bounding boxes |
+| EKOS `fields.csv` | talhões (nome, área, sistema e finalidade pelo nome, polígono) |
+| EKOS `pest_details.csv` | pragas do milho com os limiares de alerta, controle e dano |
+| Metos `Relatório Horário….csv` | clima horário (ETP diária na leitura das 00:00) e balanço hídrico |
+| OneSoil `ndvi_metadata.csv` + `JPG/` | NDVI por talhão e data e o mapa de NDVI (talhão achado pela posição da imagem) |
+| EKOS `LAYER_MAP_FERTILIZATION.csv` / `LAYER_MAP_PLANTING.csv` | calagem, gessagem, adubação de plantio e plantio por talhão (aba Manejo) |
+| EKOS `LAYER_MAP_GRAIN_HARVESTING.csv` | produtividade: só trechos de colheita dentro dos talhões |
+| EKOS `agricultural_inputs.csv` | catálogo (corretivos e sementes, com a faixa de dose aplicada) |
+| EKOS `traps_list/traps_data/traps_events.csv` | diagnósticos de praga por foto, com as caixas da detecção automática |
+| Cropman `soil_analysis.csv` + `amostras_solo.csv` | análise de solo (0–20 e 20–40 cm) |
 
-As colunas são reconhecidas por apelidos (ver `MAPAS` em `backend/app/services/ingestao.py`).
-Se algum arquivo tiver nomes de coluna diferentes, basta acrescentar o apelido no mapa.
-`python -m scripts.seed_farmlab --demo` força os dados sintéticos. O seed pode ser rodado de novo sem duplicar.
+- A análise do Cropman não diz de qual talhão é cada amostra. Crie `data/raw/farmlab/amostras_solo.csv`
+  com as colunas `amostra;talhao;data_coleta` (talhão pelo nome ou pelo idField do EKOS) para importá-la.
+- As fotos das armadilhas são baixadas do S3 do EKOS na primeira execução (`--sem-fotos` pula o download).
+  As das armadilhas eletrônicas não estão mais disponíveis (404): entram só as contagens.
+- A camada de colheita do dataset não tem trechos dentro dos 4 talhões, então não há produtividade.
+- Inseticidas e fungicidas não fazem parte do dataset: cadastre-os no catálogo e vincule às pragas para que
+  os diagnósticos de praga gerem prescrições.
+- `--limpar` apaga os dados agronômicos antes de importar (usuários ficam). Sem ele, o seed atualiza sem duplicar.
 
 ## Regras e limiares
 

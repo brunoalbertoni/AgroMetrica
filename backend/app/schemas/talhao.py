@@ -26,7 +26,20 @@ class TalhaoOut(BaseModel):
     sistema: Sistema
     finalidade: Finalidade
     geometria: str | None = None
+    data_plantio: date | None = None
     ultima_metrica: MetricaOut | None = None
+
+
+class OperacaoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    operacao: str
+    data_inicio: date
+    data_fim: date
+    area_ha: float
+    dose_aplicada: float | None
+    dose_configurada: float | None
+    unidade: str
 
 
 class TalhaoPagina(BaseModel):

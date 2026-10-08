@@ -5,7 +5,13 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { mensagemErro } from '../api/client'
 import { climaDiario } from '../api/clima'
 import { listarDiagnosticos, rodarDiagnostico } from '../api/diagnosticos'
-import { metricasTalhao, obterTalhao, soloTalhao } from '../api/talhoes'
+import {
+  imagensTalhao,
+  metricasTalhao,
+  obterTalhao,
+  operacoesTalhao,
+  soloTalhao,
+} from '../api/talhoes'
 import BarrasChart from '../components/charts/BarrasChart'
 import LinhasChart from '../components/charts/LinhasChart'
 import DiagnosticoPainel from '../components/DiagnosticoPainel'
@@ -26,6 +32,7 @@ import { COR_SISTEMA, FINALIDADE, TIPO_DIAGNOSTICO, data, dataCurta, numero } fr
 
 const ABAS = [
   { id: 'metricas', rotulo: 'Métricas' },
+  { id: 'manejo', rotulo: 'Manejo' },
   { id: 'solo', rotulo: 'Solo' },
   { id: 'clima', rotulo: 'Clima' },
   { id: 'diagnosticos', rotulo: 'Diagnósticos' },
@@ -96,7 +103,97 @@ function AbaMetricas({ talhao }) {
           )}
         </Panel>
       </div>
+      <MapaNdvi talhaoId={talhao.id} />
     </div>
+  )
+}
+
+function MapaNdvi({ talhaoId }) {
+  const { data: imagens = [] } = useQuery({
+    queryKey: ['imagens', talhaoId, 'NDVI_GEOTIFF'],
+    queryFn: () => imagensTalhao(talhaoId, 'NDVI_GEOTIFF'),
+  })
+  const [escolhida, setEscolhida] = useState(null)
+  if (imagens.length === 0) return null
+  const img = imagens.find((i) => i.id === escolhida) ?? imagens[imagens.length - 1]
+  return (
+    <Panel
+      titulo="Mapa de NDVI"
+      acao={
+        <select
+          value={img.id}
+          onChange={(e) => setEscolhida(Number(e.target.value))}
+          className={inputClass}
+          aria-label="Data da imagem"
+        >
+          {imagens.map((i) => (
+            <option key={i.id} value={i.id}>
+              {data(i.data_captura)}
+            </option>
+          ))}
+        </select>
+      }
+    >
+      <img
+        src={img.url}
+        alt={`NDVI de ${data(img.data_captura)}`}
+        className="mx-auto max-h-[480px] w-full rounded-md object-contain [image-rendering:pixelated]"
+      />
+      <p className="mt-2 text-xs text-muted">
+        Sentinel-2 via OneSoil, 10 m por pixel: vermelho é vegetação fraca ou solo, verde é vegetação densa.
+        Datas com nuvem não aparecem.
+      </p>
+    </Panel>
+  )
+}
+
+function AbaManejo({ talhaoId }) {
+  const { data: operacoes = [], isLoading } = useQuery({
+    queryKey: ['operacoes', talhaoId],
+    queryFn: () => operacoesTalhao(talhaoId),
+  })
+  if (isLoading) return <Loading />
+  if (operacoes.length === 0)
+    return <p className="text-sm text-muted">Nenhuma operação de máquina registrada neste talhão.</p>
+  return (
+    <Panel titulo="Operações registradas pelas máquinas">
+      <div className="relative overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-muted">
+            <tr className="border-b border-line">
+              <th className="px-3 py-2 text-left font-medium">Operação</th>
+              <th className="px-3 py-2 text-left font-medium">Período</th>
+              <th className="px-3 py-2 text-right font-medium">Área</th>
+              <th className="px-3 py-2 text-right font-medium">Aplicado</th>
+              <th className="px-3 py-2 text-right font-medium">Planejado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {operacoes.map((o) => (
+              <tr key={o.operacao} className="border-b border-line last:border-0">
+                <td className="px-3 py-2 font-medium">{o.operacao}</td>
+                <td className="px-3 py-2 tabular">
+                  {o.data_inicio === o.data_fim
+                    ? data(o.data_inicio)
+                    : `${data(o.data_inicio)} a ${data(o.data_fim)}`}
+                </td>
+                <td className="px-3 py-2 text-right tabular">{numero(o.area_ha, 1)} ha</td>
+                <td className="px-3 py-2 text-right tabular">
+                  {numero(o.dose_aplicada, 0)} {o.unidade}
+                </td>
+                <td className="px-3 py-2 text-right tabular">
+                  {o.dose_configurada != null ? `${numero(o.dose_configurada, 0)} ${o.unidade}` : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-muted">
+        Telemetria EKOS: doses são a média ponderada pela área de cada trecho aplicado. No plantio, o valor é a
+        população de plantas.
+      </p>
+    </Panel>
   )
 }
 
@@ -110,7 +207,10 @@ function AbaSolo({ talhaoId }) {
   if (isLoading) return <Loading />
   if (pontos.length === 0)
     return (
-      <p className="text-sm text-muted">Sem análise de solo. Envie a planilha do Cropman em Enviar dados.</p>
+      <p className="text-sm text-muted">
+        Sem análise de solo. A planilha do Cropman não diz de qual talhão é cada amostra: informe isso em
+        amostras_solo.csv e rode o seed de novo.
+      </p>
     )
   const campos = [
     ['ph', 'pH', 2],
@@ -303,6 +403,7 @@ export default function TalhaoDetalhe() {
             <span>{FINALIDADE[talhao.finalidade]}</span>
             <span>{talhao.cultura}</span>
             <span className="tabular">{numero(talhao.area_ha, 2)} ha</span>
+            {talhao.data_plantio && <span>Plantio em {data(talhao.data_plantio)}</span>}
           </div>
         </div>
         {isAgronomo && (
@@ -355,6 +456,7 @@ export default function TalhaoDetalhe() {
         }
       />
       {aba === 'metricas' && <AbaMetricas talhao={talhao} />}
+      {aba === 'manejo' && <AbaManejo talhaoId={talhaoId} />}
       {aba === 'solo' && <AbaSolo talhaoId={talhaoId} />}
       {aba === 'clima' && <AbaClima key={metricas.length} metricas={metricas} />}
       {aba === 'diagnosticos' && <AbaDiagnosticos talhaoId={talhaoId} focado={focado} />}

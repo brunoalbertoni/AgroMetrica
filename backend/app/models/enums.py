@@ -38,6 +38,7 @@ class ClasseProduto(enum.StrEnum):
     HERBICIDA = "HERBICIDA"
     FERTILIZANTE = "FERTILIZANTE"
     CORRETIVO = "CORRETIVO"
+    SEMENTE = "SEMENTE"
 
 
 class TipoDiagnostico(enum.StrEnum):

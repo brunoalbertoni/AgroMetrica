@@ -60,6 +60,7 @@ export const CLASSE_PRODUTO = {
   HERBICIDA: 'Herbicida',
   FERTILIZANTE: 'Fertilizante',
   CORRETIVO: 'Corretivo',
+  SEMENTE: 'Semente',
 }
 export const PERFIL = { ADMIN: 'Administrador', AGRONOMO: 'Agrônomo' }
 

@@ -1,6 +1,7 @@
+from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Numeric, String, Text
+from sqlalchemy import Date, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -18,3 +19,6 @@ class Talhao(Base):
     finalidade: Mapped[Finalidade] = mapped_column(sa_enum(Finalidade))
     # (MySQL) polígono em texto WKT: POLYGON((lon lat, ...))
     geometria: Mapped[str | None] = mapped_column(Text)
+    # identificador do talhão no sistema de origem (idField do EKOS)
+    codigo_externo: Mapped[str | None] = mapped_column(String(40))
+    data_plantio: Mapped[date | None] = mapped_column(Date)

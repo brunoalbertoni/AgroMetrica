@@ -232,6 +232,46 @@ export default function Comparativo() {
             </Panel>
           </div>
 
+          <Panel titulo="Manejo">
+            {c.a.operacoes.length + c.b.operacoes.length === 0 ? (
+              <p className="text-sm text-muted">Nenhuma operação de máquina registrada nesses talhões.</p>
+            ) : (
+              <div className="relative overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-muted">
+                    <tr className="border-b border-line">
+                      <th className="px-3 py-2 text-left font-medium">Operação</th>
+                      <th className="px-3 py-2 text-right font-medium">A: {c.a.talhao.nome}</th>
+                      <th className="px-3 py-2 text-right font-medium">B: {c.b.talhao.nome}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...new Set([...c.a.operacoes, ...c.b.operacoes].map((o) => o.operacao))].map((nome) => (
+                      <tr key={nome} className="border-b border-line last:border-0">
+                        <td className="px-3 py-2 font-medium">{nome}</td>
+                        {[c.a, c.b].map((bloco) => {
+                          const o = bloco.operacoes.find((x) => x.operacao === nome)
+                          return (
+                            <td key={bloco.talhao.id} className="px-3 py-2 text-right tabular">
+                              {o ? (
+                                <>
+                                  {numero(o.dose_aplicada, 0)} {o.unidade}
+                                  <span className="block text-xs text-muted">{dataCurta(o.data_inicio)}</span>
+                                </>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+
           <div className="grid gap-6 lg:grid-cols-2">
             <Panel titulo="Chuva diária">
               <BarrasChart
