@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { PERFIL } from '../lib/format'
 import AlertBar from './AlertBar'
+import AssistentePainel from './AssistentePainel'
 
 const LINKS = [
   { to: '/', rotulo: 'Painel', end: true },
@@ -82,6 +83,7 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+      <AssistentePainel />
     </div>
   )
 }

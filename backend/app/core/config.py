@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     jwt_expires_min: int = 480
     storage_dir: str = "../storage"
     cors_origins: str = "http://localhost:5173"
+    gemini_api_key: str = ""
+    gemini_modelo: str = "gemini-3-flash-preview"
 
     @field_validator("jwt_secret")
     @classmethod

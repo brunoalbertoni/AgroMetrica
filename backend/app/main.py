@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.routers import (
     alertas,
+    assistente,
     auth,
     dashboard,
     diagnosticos,
@@ -56,6 +57,7 @@ _ROUTERS = (
     prescricoes.router,
     alertas.router,
     dashboard.router,
+    assistente.router,
 )
 for _r in _ROUTERS:
     app.include_router(_r, prefix="/api")
