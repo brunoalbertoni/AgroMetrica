@@ -4,8 +4,8 @@ from types import SimpleNamespace
 from app.core.config import settings
 from app.models import MetricaTalhao, Praga, Produto, Talhao
 from app.models.enums import ClasseProduto, Finalidade, Sistema
-from app.services import assistente
-from app.services.assistente_tools import criar_tools
+from app.services.assistente import assistenteService as assistente
+from app.services.assistente.assistenteTools import criar_tools
 
 from .conftest import auth
 

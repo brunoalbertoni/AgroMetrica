@@ -30,6 +30,8 @@ import pandas as pd
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.comum import geo, storage
+from app.comum.upsert import upsert
 from app.core.database import SessionLocal
 from app.core.security import hash_senha
 from app.models import (
@@ -49,9 +51,9 @@ from app.models import (
     praga_produto,
 )
 from app.models.enums import ClasseProduto, Finalidade, Perfil, Sistema, StatusImagem, TipoImagem, TipoUpload
-from app.services import diagnostico, geo, ingestao, storage
-from app.services.ingestao import converter_numero, normalizar
-from app.services.upsert import upsert
+from app.services.diagnosticos import diagnosticosService as diagnostico
+from app.services.uploads import ingestaoService as ingestao
+from app.services.uploads.ingestaoService import converter_numero, normalizar
 
 log = logging.getLogger("seed")
 

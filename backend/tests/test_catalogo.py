@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from app.models import Praga, Talhao
-from app.services import diagnostico as diag_svc
+from app.services.diagnosticos import diagnosticosService as diag_svc
 from tests.conftest import auth
 
 PRODUTO = {
