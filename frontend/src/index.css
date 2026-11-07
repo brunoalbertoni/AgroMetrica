@@ -69,3 +69,38 @@
 .sem-barra::-webkit-scrollbar {
   display: none;
 }
+
+/* Painel visual do assistente: entra deslizando pela esquerda e os itens aparecem em sequência */
+@keyframes painel-entra {
+  from {
+    opacity: 0;
+    transform: translateX(-32px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes painel-item {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.painel-entra {
+  animation: painel-entra 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.painel-item {
+  animation: painel-item 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--atraso, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .painel-entra,
+  .painel-item {
+    animation: none;
+  }
+}

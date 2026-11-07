@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // com mais caixas que isso as etiquetas se sobrepõem e ficam ilegíveis: só o contorno é desenhado
 const LIMITE_ETIQUETAS = 10
@@ -8,9 +8,11 @@ const LIMITE_ETIQUETAS = 10
  * As caixas vêm normalizadas (0–1) e são escaladas pelo tamanho exibido na tela,
  * então continuam alinhadas em qualquer largura.
  */
-export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b' }) {
+export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b', animar = false }) {
   const imgRef = useRef(null)
   const canvasRef = useRef(null)
+  // com `animar`, as caixas aparecem em sequência (cerca de 1 s no total)
+  const [visiveis, setVisiveis] = useState(animar ? 0 : caixas.length)
 
   const desenhar = useCallback(() => {
     const img = imgRef.current
@@ -29,7 +31,7 @@ export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b' }) {
     ctx.lineWidth = 2
     ctx.font = '600 11px "Public Sans", sans-serif'
     const comEtiqueta = caixas.length <= LIMITE_ETIQUETAS
-    caixas.forEach((c, i) => {
+    caixas.slice(0, visiveis).forEach((c, i) => {
       const x = c.x * largura
       const y = c.y * altura
       const w = c.w * largura
@@ -49,7 +51,20 @@ export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b' }) {
       ctx.fillStyle = '#ffffff'
       ctx.fillText(texto, x + 4, ty + 12)
     })
-  }, [caixas, cor])
+  }, [caixas, cor, visiveis])
+
+  useEffect(() => {
+    if (!animar) return undefined
+    const passo = Math.max(1, Math.ceil(caixas.length / 25))
+    const id = setInterval(() => {
+      setVisiveis((v) => {
+        const proximo = Math.min(v + passo, caixas.length)
+        if (proximo >= caixas.length) clearInterval(id)
+        return proximo
+      })
+    }, 40)
+    return () => clearInterval(id)
+  }, [animar, caixas.length])
 
   useEffect(() => {
     const img = imgRef.current

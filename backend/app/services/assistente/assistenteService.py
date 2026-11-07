@@ -43,6 +43,11 @@ def _instrucao(hoje: date) -> str:
         "Se as ferramentas não trouxerem o que foi perguntado, diga que não tem essa informação.\n"
         "Não afirme causas que os dados não mostram: quando duas coisas aparecem juntas (ex.: NDVI baixo "
         "e pragas), diga que coincidem ou que é uma hipótese a investigar, nunca que uma causou a outra.\n"
+        "Há ferramentas mostrar_* que abrem um painel visual animado ao lado do chat (gráfico, fotos de "
+        "pragas com caixas de detecção, comparativo de talhões). Use-as quando ajudarem a responder: "
+        "por exemplo, ao comparar talhões, mostrar_comparativo; ao falar de evolução, mostrar_grafico; "
+        "ao pedirem para ver pragas, mostrar_galeria_pragas. No máximo 2 painéis por resposta, e comente "
+        "no texto o que o painel mostra, sem repetir todos os números.\n"
         "As ferramentas só leem dados; você não consegue criar, alterar nem apagar nada no sistema, "
         "e deve dizer isso se pedirem. Sugestões de manejo são sugestões e precisam de validação de "
         "um responsável técnico — deixe isso claro quando sugerir algo."
@@ -58,14 +63,19 @@ def _conteudos(mensagem: str, historico: list[dict]) -> list[types.Content]:
     return conteudos
 
 
-def responder(db: Session, mensagem: str, historico: list[dict]) -> str:
-    """Pergunta ao Gemini com as tools de consulta; o SDK executa as chamadas de função sozinho."""
+def responder(db: Session, mensagem: str, historico: list[dict]) -> tuple[str, list[dict]]:
+    """Pergunta ao Gemini com as tools; o SDK executa as chamadas de função sozinho.
+
+    Devolve (texto, painéis): os painéis são as especificações que as tools `mostrar_*` registraram.
+    """
     if not settings.gemini_api_key:
         raise ErroAssistente("Assistente indisponível: defina GEMINI_API_KEY no .env.", status=503)
 
+    paineis: list[dict] = []
+
     config = types.GenerateContentConfig(
         system_instruction=_instrucao(date.today()),
-        tools=criar_tools(db),
+        tools=criar_tools(db, paineis),
         automatic_function_calling=types.AutomaticFunctionCallingConfig(
             maximum_remote_calls=MAX_CHAMADAS_TOOLS
         ),
@@ -112,4 +122,5 @@ def responder(db: Session, mensagem: str, historico: list[dict]) -> str:
                 ) from erro
             raise ErroAssistente("O assistente não conseguiu responder agora. Tente novamente.") from erro
 
-    return resposta.text or "Não consegui montar uma resposta. Tente reformular a pergunta."
+    texto = resposta.text or "Não consegui montar uma resposta. Tente reformular a pergunta."
+    return texto, paineis

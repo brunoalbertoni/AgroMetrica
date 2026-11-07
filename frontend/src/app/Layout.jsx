@@ -77,7 +77,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className="min-w-0">
+      <div className="isolate min-w-0">
         <AlertBar />
         <main className="mx-auto max-w-[1280px] px-4 pb-28 pt-6 md:px-8 md:pb-28 md:pt-8">
           <Outlet />

@@ -4,13 +4,14 @@ import remarkGfm from 'remark-gfm'
 
 import { conversar } from '../../api/assistente/AssistenteApi'
 import { mensagemErro } from '../../compartilhado/client'
+import PainelVisual from './PainelVisual'
 
 const AVATAR = '/assistente.svg'
 const NOME = 'Assistente AgroMétrica'
 const SUGESTOES = [
+  'Compare o Grão 4.0 com o Grão Convecional',
+  'Mostre as armadilhas com mais pragas',
   'Como está o NDVI dos talhões?',
-  'Quais alertas estão abertos?',
-  'Resuma o clima dos últimos dias',
 ]
 
 const componentes = {
@@ -35,7 +36,7 @@ function Avatar({ className = 'h-10 w-10' }) {
   return <img src={AVATAR} alt="" className={`${className} shrink-0 rounded-full`} />
 }
 
-function Mensagem({ m }) {
+function Mensagem({ m, onVerPainel }) {
   if (m.papel === 'usuario') {
     return (
       <div className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-canopy-soft px-3.5 py-2 text-sm text-ink">
@@ -54,6 +55,15 @@ function Mensagem({ m }) {
             {m.texto}
           </ReactMarkdown>
         )}
+        {m.paineis?.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onVerPainel(m.paineis)}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-canopy/40 px-3 py-1 text-xs font-medium text-canopy hover:bg-canopy-soft"
+          >
+            <span aria-hidden>▦</span> Ver visualização{m.paineis.length > 1 ? ` (${m.paineis.length})` : ''}
+          </button>
+        )}
       </div>
     </div>
   )
@@ -64,6 +74,7 @@ export default function AssistentePainel() {
   const [mensagens, setMensagens] = useState([])
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [visual, setVisual] = useState(null) // { paineis, indice } do painel ao lado do chat
   const fimRef = useRef(null)
 
   useEffect(() => {
@@ -81,8 +92,9 @@ export default function AssistentePainel() {
     setTexto('')
     setEnviando(true)
     try {
-      const resposta = await conversar(conteudo, historico)
-      setMensagens((m) => [...m, { papel: 'modelo', texto: resposta }])
+      const { resposta, paineis = [] } = await conversar(conteudo, historico)
+      setMensagens((m) => [...m, { papel: 'modelo', texto: resposta, paineis }])
+      if (paineis.length > 0) setVisual({ paineis, indice: 0 })
     } catch (erro) {
       setMensagens((m) => [...m, { papel: 'modelo', texto: mensagemErro(erro), erro: true }])
     } finally {
@@ -111,6 +123,15 @@ export default function AssistentePainel() {
         </button>
       )}
 
+      {aberto && visual && (
+        <PainelVisual
+          paineis={visual.paineis}
+          indice={visual.indice}
+          onTrocar={(indice) => setVisual({ ...visual, indice })}
+          onFechar={() => setVisual(null)}
+        />
+      )}
+
       {aberto && (
         <aside
           role="dialog"
@@ -125,7 +146,10 @@ export default function AssistentePainel() {
             <div className="flex items-center gap-1 text-muted">
               <button
                 type="button"
-                onClick={() => setMensagens([])}
+                onClick={() => {
+                  setMensagens([])
+                  setVisual(null)
+                }}
                 disabled={mensagens.length === 0}
                 aria-label="Limpar conversa"
                 title="Limpar conversa"
@@ -189,7 +213,7 @@ export default function AssistentePainel() {
                 </div>
               )}
               {mensagens.map((m, i) => (
-                <Mensagem key={i} m={m} />
+                <Mensagem key={i} m={m} onVerPainel={(paineis) => setVisual({ paineis, indice: 0 })} />
               ))}
               {enviando && (
                 <div className="flex items-center gap-2.5">

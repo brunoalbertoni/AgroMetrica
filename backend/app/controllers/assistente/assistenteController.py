@@ -22,7 +22,7 @@ class ChatIn(BaseModel):
 @router.post("/chat")
 def chat(entrada: ChatIn, db: Session = Depends(get_db)):
     try:
-        resposta = svc.responder(db, entrada.mensagem, [h.model_dump() for h in entrada.historico])
+        resposta, paineis = svc.responder(db, entrada.mensagem, [h.model_dump() for h in entrada.historico])
     except svc.ErroAssistente as erro:
         raise HTTPException(erro.status, str(erro)) from erro
-    return {"resposta": resposta}
+    return {"resposta": resposta, "paineis": paineis}

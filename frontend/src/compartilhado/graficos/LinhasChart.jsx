@@ -71,6 +71,7 @@ export default function LinhasChart({
   unidade = '',
   eventos = [],
   rotulosDiretos = false,
+  animado = false,
 }) {
   const linhas = mesclar(series)
   if (linhas.length === 0)
@@ -134,7 +135,8 @@ export default function LinhasChart({
               dot={false}
               activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }}
               connectNulls
-              isAnimationActive={false}
+              isAnimationActive={animado}
+              animationDuration={900}
               label={rotulosDiretos && multiplas ? rotuloFinal(s, linhas.length) : undefined}
             />
           ))}

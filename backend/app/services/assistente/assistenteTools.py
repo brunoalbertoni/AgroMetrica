@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.models.enums import Severidade
 from app.services.alertas import alertasService as alertas
+from app.services.assistente import assistentePaineis as paineis_svc
 from app.services.dashboard import dashboardService as dashboard
 from app.services.diagnosticos import diagnosticosService as diagnostico
 from app.services.pragas import pragasService
@@ -23,6 +24,7 @@ from app.services.produtos import produtosService
 from app.services.talhoes import talhoesService as talhoes
 
 LIMITE_MAX = 50
+LIMITE_PAINEIS = 2  # painéis por resposta: cada um é uma chamada a mais ao Gemini
 
 
 def _limpar(valor):
@@ -61,8 +63,13 @@ def _segura(funcao: Callable) -> Callable:
     return interna
 
 
-def criar_tools(db: Session) -> list[Callable]:
-    """Tools ligadas à sessão do banco desta requisição."""
+def criar_tools(db: Session, paineis: list | None = None) -> list[Callable]:
+    """Tools ligadas à sessão do banco desta requisição.
+
+    As tools `mostrar_*` não devolvem o gráfico ao modelo: elas acrescentam a especificação do painel
+    em `paineis`, que o controller entrega ao frontend junto com o texto da resposta.
+    """
+    paineis = [] if paineis is None else paineis
 
     @_segura
     def resumo_geral() -> dict:
@@ -152,6 +159,38 @@ def criar_tools(db: Session) -> list[Callable]:
         unidade e carência."""
         return {"produtos": [_linha(p) for p in produtosService.listar_produtos(db)]}
 
+    def _exibir(montar, *args) -> dict:
+        """Monta o painel (dados do banco), guarda a especificação e devolve só um resumo ao modelo."""
+        if len(paineis) >= LIMITE_PAINEIS:
+            return {"erro": f"Já há {LIMITE_PAINEIS} painéis nesta resposta; não mostre mais."}
+        spec, resumo = montar(db, *args)
+        paineis.append(_limpar(spec))
+        return {"mostrado": spec["tipo"], "titulo": spec["titulo"], **resumo}
+
+    @_segura
+    def mostrar_grafico(metrica: str, talhao_ids: list[int] | None = None, titulo: str | None = None) -> dict:
+        """Mostra ao usuário, no painel ao lado do chat, um gráfico de linhas animado. `metrica` é
+        'ndvi', 'balanco_hidrico' (por talhão), 'temperatura' ou 'chuva' (clima da fazenda).
+        `talhao_ids` escolhe até 4 talhões (vazio = todos). Os dados vêm do banco; você recebe só um
+        resumo em números para comentar. Use quando um gráfico ajudar a responder."""
+        return _exibir(paineis_svc.grafico, metrica, talhao_ids, titulo)
+
+    @_segura
+    def mostrar_galeria_pragas(
+        talhao_id: int | None = None, praga: str | None = None, severidade: str | None = None, limite: int = 4
+    ) -> dict:
+        """Mostra no painel as fotos de armadilha com as caixas de detecção das pragas, das contagens
+        mais altas para as mais baixas. Filtros opcionais: `talhao_id`, `praga` (parte do nome) e
+        `severidade` (BAIXA, MEDIA ou ALTA). `limite` até 6 fotos. Use quando pedirem para ver pragas."""
+        return _exibir(paineis_svc.galeria_pragas, talhao_id, praga, severidade, limite)
+
+    @_segura
+    def mostrar_comparativo(talhao_a: int, talhao_b: int) -> dict:
+        """Mostra no painel dois talhões lado a lado: indicadores (NDVI médio, pico, pragas, produtividade)
+        com o melhor destacado e a curva de NDVI dos dois. Use para perguntas do tipo 'por que um foi
+        melhor que o outro'. Obtenha os ids com resumo_geral."""
+        return _exibir(paineis_svc.comparativo, talhao_a, talhao_b)
+
     return [
         resumo_geral,
         consultar_talhao,
@@ -161,6 +200,9 @@ def criar_tools(db: Session) -> list[Callable]:
         listar_diagnosticos,
         listar_pragas,
         listar_produtos,
+        mostrar_grafico,
+        mostrar_galeria_pragas,
+        mostrar_comparativo,
     ]
 
 
