@@ -44,6 +44,36 @@ Usuários criados pelo seed (troque as senhas fora do ambiente de desenvolviment
 | Administrador | admin@agrometrica.com.br | admin123 |
 | Agrônomo | agronomo@agrometrica.com.br | agro123 |
 
+## Estrutura de pastas
+
+O código é organizado **por camada**, e dentro de cada camada há uma pasta por módulo
+(`talhoes`, `diagnosticos`, `pragas`, `produtos`...) com o arquivo no padrão `<modulo>Controller`, `<modulo>Service`...
+
+```
+backend/app/
+  main.py                           registra os controllers
+  controllers/<modulo>/<modulo>Controller.py     rotas da API (FastAPI)
+  services/<modulo>/<modulo>Service.py           regras de negócio
+  schemas/<modulo>/<modulo>Schemas.py            formatos de entrada e saída (Pydantic)
+  models/                           tabelas (o Alembic importa daqui)
+  comum/                            utilitários (geo, storage, upsert, exclusao)
+  core/                             config, banco, segurança, regras.toml
+backend/tests/                      test_<modulo>.py
+backend/scripts/                    seed_farmlab.py
+backend/migrations/                 Alembic
+
+frontend/src/
+  api/<modulo>/<Modulo>Api.js       chamadas HTTP (ex.: api/pragas/PragasApi.js)
+  paginas/<modulo>/                 telas
+  componentes/<modulo>/             componentes do módulo
+  stores/<modulo>/                  estado global (hoje só auth)
+  compartilhado/                    client HTTP, ui, DataTable, gráficos, format
+  app/                              rotas e layout
+```
+
+Módulos do backend: `talhoes`, `diagnosticos`, `alertas`, `prescricoes`, `pragas`, `produtos`, `imagens`,
+`uploads`, `clima`, `dashboard`, `usuarios`, `auth`, `assistente`.
+
 ## Dados do FarmLab
 
 O sistema não tem dados inventados: tudo vem do dataset FarmLab. Coloque as pastas do dataset em

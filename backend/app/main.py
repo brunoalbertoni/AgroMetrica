@@ -3,20 +3,19 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.controllers.alertas import alertasController as alertas
+from app.controllers.assistente import assistenteController as assistente
+from app.controllers.auth import authController as auth
+from app.controllers.dashboard import dashboardController as dashboard
+from app.controllers.diagnosticos import diagnosticosController as diagnosticos
+from app.controllers.imagens import imagensController as imagens
+from app.controllers.pragas import pragasController as pragas
+from app.controllers.prescricoes import prescricoesController as prescricoes
+from app.controllers.produtos import produtosController as produtos
+from app.controllers.talhoes import talhoesController as talhoes
+from app.controllers.uploads import uploadsController as uploads
+from app.controllers.usuarios import usuariosController as usuarios
 from app.core.config import settings
-from app.routers import (
-    alertas,
-    auth,
-    dashboard,
-    diagnosticos,
-    imagens,
-    pragas,
-    prescricoes,
-    produtos,
-    talhoes,
-    uploads,
-    usuarios,
-)
 
 app = FastAPI(title="AgroMétrica API", version="0.1.0")
 
@@ -56,6 +55,7 @@ _ROUTERS = (
     prescricoes.router,
     alertas.router,
     dashboard.router,
+    assistente.router,
 )
 for _r in _ROUTERS:
     app.include_router(_r, prefix="/api")

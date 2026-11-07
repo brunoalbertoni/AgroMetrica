@@ -4,6 +4,7 @@ from datetime import date, datetime
 import pytest
 from sqlalchemy import func, select
 
+from app.comum import geo, storage
 from app.models import (
     Alerta,
     Diagnostico,
@@ -17,8 +18,7 @@ from app.models import (
     Talhao,
     Usuario,
 )
-from app.services import diagnostico as diag_svc
-from app.services import geo, storage
+from app.services.diagnosticos import diagnosticosService as diag_svc
 from scripts import seed_farmlab
 
 # dois talhões quadrados lado a lado (lon, lat), no formato MULTIPOLYGON do EKOS
@@ -86,7 +86,9 @@ def farmlab(tmp_path):
         "ARM2;2026-02-07T12:00:00.000Z;https://fotos.exemplo/a2.jpg;;40;IMAGE;9002\n"
         "ARM1;2026-02-07T13:00:00.000Z;;;0;PING;9001\n",
     )
-    cab = "geometry;Timestamp;Date Time;Machine Name;Service Order;Operator Number;Operator Name;Operation;Team"
+    cab = (
+        "geometry;Timestamp;Date Time;Machine Name;Service Order;Operator Number;Operator Name;Operation;Team"
+    )
     _escrever(
         ekos / "Layers",
         "LAYER_MAP_FERTILIZATION.csv",
@@ -250,7 +252,8 @@ def test_armadilhas_viram_diagnosticos_com_caixas(db, farmlab, sem_download):
     t = _talhoes(db)
     diags = {d.praga.nome + "@" + d.talhao.nome: d for d in db.scalars(select(Diagnostico))}
     lagarta = diags["Lagarta Spodoptera@Grão 4.0"]
-    assert lagarta.detalhes["contagem"] == 3 and lagarta.severidade == "MEDIA"  # 3 ≥ controle... não: alerta 2
+    # limiares do pest_details do teste: alerta 2, controle 4, dano 5 → 3 está entre alerta e controle
+    assert lagarta.detalhes["contagem"] == 3 and lagarta.severidade == "BAIXA"
     assert lagarta.detalhes["data"] == "2026-02-06T09:00:00"  # UTC → horário local
     assert lagarta.detalhes["bboxes"][0] == {
         "x": 0.1,
@@ -269,7 +272,8 @@ def test_armadilhas_viram_diagnosticos_com_caixas(db, farmlab, sem_download):
     cigarrinha = diags["Cigarrinha@Grão Convencional"]
     assert cigarrinha.detalhes["contagem"] == 40 and cigarrinha.severidade == "ALTA"
     assert cigarrinha.detalhes["bboxes"] == []
-    assert _contar(db, Alerta) == 2
+    # só MEDIA e ALTA geram alerta: a lagarta (BAIXA) não, a cigarrinha (ALTA) sim
+    assert _contar(db, Alerta) == 1
 
 
 def test_solo_precisa_do_vinculo_de_amostras(db, farmlab, sem_download):
@@ -329,4 +333,5 @@ def test_geo_localiza_ponto_e_converte_multipolygon():
     assert loc.talhao(-50.1, -22.245) is None
     lon, lat = geo.mercator_para_lonlat(*_mercator(-49.975, -22.245))
     assert (round(lon, 6), round(lat, 6)) == (-49.975, -22.245)
-    assert geo.area_ha(wkt) == pytest.approx(1.03 * 1.11 * 100 * 0.925, rel=0.05)
+    # 0,01° × 0,01° a −22,245°: ~1,03 km de largura (o cosseno da latitude já está nisso) × ~1,11 km de altura
+    assert geo.area_ha(wkt) == pytest.approx(1.03 * 1.11 * 100, rel=0.05)

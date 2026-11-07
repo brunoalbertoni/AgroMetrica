@@ -3,7 +3,7 @@ from datetime import date, datetime
 import pytest
 
 from app.models import LeituraClima, MetricaTalhao, Praga, Talhao
-from app.services import diagnostico as diag_svc
+from app.services.diagnosticos import diagnosticosService as diag_svc
 from tests.conftest import auth
 
 

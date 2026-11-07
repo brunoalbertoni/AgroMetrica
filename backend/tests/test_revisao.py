@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 
 from app.core.config import Settings
 from app.models import LeituraClima, LeituraSolo, Praga, Prescricao, Produto, Talhao, Upload
-from app.services import diagnostico as diag_svc
+from app.services.diagnosticos import diagnosticosService as diag_svc
 from tests.conftest import auth
 
 
