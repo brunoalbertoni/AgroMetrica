@@ -70,7 +70,7 @@ export default function LinhasChart({
   casas = 2,
   unidade = '',
   eventos = [],
-  rotulosDiretos = true,
+  rotulosDiretos = false,
 }) {
   const linhas = mesclar(series)
   if (linhas.length === 0)

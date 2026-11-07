@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react'
 
+// com mais caixas que isso as etiquetas se sobrepõem e ficam ilegíveis: só o contorno é desenhado
+const LIMITE_ETIQUETAS = 10
+
 /**
  * Imagem com as caixas de detecção desenhadas num <canvas> sobreposto.
  * As caixas vêm normalizadas (0–1) e são escaladas pelo tamanho exibido na tela,
@@ -25,6 +28,7 @@ export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b' }) {
     ctx.clearRect(0, 0, largura, altura)
     ctx.lineWidth = 2
     ctx.font = '600 11px "Public Sans", sans-serif'
+    const comEtiqueta = caixas.length <= LIMITE_ETIQUETAS
     caixas.forEach((c, i) => {
       const x = c.x * largura
       const y = c.y * altura
@@ -36,6 +40,7 @@ export default function BBoxCanvas({ src, caixas = [], alt, cor = '#c2362b' }) {
       ctx.strokeStyle = cor
       ctx.lineWidth = 2
       ctx.strokeRect(x, y, w, h)
+      if (!comEtiqueta) return
       const texto = c.confianca ? `${i + 1} · ${Math.round(c.confianca * 100)}%` : String(i + 1)
       const tw = ctx.measureText(texto).width + 8
       const ty = y > 16 ? y - 16 : y + h

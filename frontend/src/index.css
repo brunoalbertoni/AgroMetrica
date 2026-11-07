@@ -61,3 +61,11 @@
   font-family: var(--font-sans);
   background: #e9ece4;
 }
+
+/* Listas roláveis (menu e abas no celular) sem barra de rolagem visível */
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}

@@ -6,9 +6,35 @@ import { wktParaLatLng } from '../../compartilhado/geo'
 
 const SEM_ALERTA = '#e3eee4'
 
+const centro = (pontos) => [
+  pontos.reduce((soma, p) => soma + p[0], 0) / pontos.length,
+  pontos.reduce((soma, p) => soma + p[1], 0) / pontos.length,
+]
+
+/** Rótulo do lado oposto ao do talhão vizinho mais próximo, para nomes de vizinhos não se sobreporem. */
+function posicoesDosRotulos(poligonos) {
+  const centros = poligonos.map((t) => ({ id: t.id, c: centro(t.pontos) }))
+  return new Map(
+    centros.map(({ id, c }) => {
+      const vizinhos = centros.filter((o) => o.id !== id)
+      if (vizinhos.length === 0) return [id, { direcao: 'center', offset: [0, 0] }]
+      const k = Math.cos((c[0] * Math.PI) / 180)
+      const dist = (o) => Math.hypot(o.c[0] - c[0], (o.c[1] - c[1]) * k)
+      const perto = vizinhos.reduce((a, b) => (dist(a) <= dist(b) ? a : b))
+      const dy = perto.c[0] - c[0]
+      const dx = (perto.c[1] - c[1]) * k
+      if (Math.abs(dy) >= Math.abs(dx))
+        return [id, dy > 0 ? { direcao: 'bottom', offset: [0, 12] } : { direcao: 'top', offset: [0, -12] }]
+      return [id, dx > 0 ? { direcao: 'left', offset: [-12, 0] } : { direcao: 'right', offset: [12, 0] }]
+    }),
+  )
+}
+
 /** Mapa dos talhões pintados pela severidade do alerta aberto mais grave. */
 export default function MapaTalhoes({ talhoes, altura = 360 }) {
   const poligonos = talhoes.map((t) => ({ ...t, pontos: wktParaLatLng(t.geometria) })).filter((t) => t.pontos)
+
+  const rotulos = posicoesDosRotulos(poligonos)
 
   if (poligonos.length === 0) {
     return (
@@ -53,7 +79,12 @@ export default function MapaTalhoes({ talhoes, altura = 360 }) {
                 fillOpacity: t.severidade ? 0.7 : 0.45,
               }}
             >
-              <Tooltip direction="center" permanent className="!border-0 !bg-transparent !shadow-none">
+              <Tooltip
+                direction={rotulos.get(t.id).direcao}
+                offset={rotulos.get(t.id).offset}
+                permanent
+                className="!border-0 !bg-transparent !shadow-none"
+              >
                 <span className="font-display text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]">
                   {t.nome}
                 </span>

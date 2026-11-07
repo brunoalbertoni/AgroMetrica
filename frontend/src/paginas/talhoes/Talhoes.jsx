@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { mensagemErro } from '../../compartilhado/client'
 import { listarTalhoes } from '../../api/talhoes/TalhoesApi'
 import DataTable from '../../compartilhado/DataTable'
-import { ErrorMessage, Field, PageHeader, SistemaTag, inputClass } from '../../compartilhado/ui'
+import { ErrorMessage, Field, Loading, PageHeader, SistemaTag, inputClass } from '../../compartilhado/ui'
 import { FINALIDADE, data, numero } from '../../compartilhado/format'
 
 const TAMANHO = 10
@@ -142,7 +142,9 @@ export default function Talhoes() {
       </div>
 
       <ErrorMessage>{error && mensagemErro(error)}</ErrorMessage>
-      {isLoading ? null : (
+      {isLoading ? (
+        <Loading />
+      ) : (
         <DataTable
           colunas={colunas}
           dados={pagina?.items}

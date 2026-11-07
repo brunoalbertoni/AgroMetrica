@@ -69,7 +69,9 @@ export function SeverityBadge({ severidade }) {
     BAIXA: 'bg-line text-ink',
   }[severidade]
   return (
-    <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold ${estilo}`}>
+    <span
+      className={`inline-block min-w-[3.5rem] rounded-sm px-2 py-0.5 text-center text-xs font-semibold ${estilo}`}
+    >
       {SEVERIDADE[severidade]}
     </span>
   )
@@ -155,7 +157,10 @@ export function Modal({ aberto, titulo, onFechar, children }) {
 
 export function Tabs({ abas, ativa, onTrocar }) {
   return (
-    <div role="tablist" className="mb-5 flex gap-1 overflow-x-auto border-b border-line">
+    <div
+      role="tablist"
+      className="sem-barra mb-5 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line"
+    >
       {abas.map((aba) => (
         <button
           key={aba.id}

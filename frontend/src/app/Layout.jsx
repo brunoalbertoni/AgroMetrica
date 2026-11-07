@@ -48,7 +48,7 @@ export default function Layout() {
             Sair
           </button>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-1 md:flex-col md:overflow-visible md:pb-0">
+        <nav className="sem-barra flex gap-1 overflow-x-auto px-3 pb-3 md:flex-1 md:flex-col md:overflow-visible md:pb-0">
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -66,7 +66,7 @@ export default function Layout() {
         </nav>
         <div className="hidden border-t border-white/15 px-5 py-4 text-sm md:block">
           <p className="font-medium">{usuario?.nome}</p>
-          <p className="text-white/70">{PERFIL[usuario?.perfil]}</p>
+          <p className="text-white/70">Perfil: {PERFIL[usuario?.perfil]}</p>
           <button
             type="button"
             onClick={sair}
@@ -79,7 +79,7 @@ export default function Layout() {
 
       <div className="min-w-0">
         <AlertBar />
-        <main className="mx-auto max-w-[1280px] px-4 py-6 md:px-8 md:py-8">
+        <main className="mx-auto max-w-[1280px] px-4 pb-28 pt-6 md:px-8 md:pb-28 md:pt-8">
           <Outlet />
         </main>
       </div>

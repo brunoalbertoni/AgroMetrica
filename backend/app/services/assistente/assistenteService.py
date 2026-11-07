@@ -41,6 +41,8 @@ def _instrucao(hoje: date) -> str:
         "Para conversa que não precisa de dados, responda direto, sem chamar ferramentas.\n"
         "Todo número que você citar precisa vir do resultado das ferramentas; nunca invente valores. "
         "Se as ferramentas não trouxerem o que foi perguntado, diga que não tem essa informação.\n"
+        "Não afirme causas que os dados não mostram: quando duas coisas aparecem juntas (ex.: NDVI baixo "
+        "e pragas), diga que coincidem ou que é uma hipótese a investigar, nunca que uma causou a outra.\n"
         "As ferramentas só leem dados; você não consegue criar, alterar nem apagar nada no sistema, "
         "e deve dizer isso se pedirem. Sugestões de manejo são sugestões e precisam de validação de "
         "um responsável técnico — deixe isso claro quando sugerir algo."
