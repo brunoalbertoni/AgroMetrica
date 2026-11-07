@@ -1,9 +1,12 @@
 from datetime import date, datetime
 from types import SimpleNamespace
 
+from google.genai import errors
+
 from app.core.config import settings
 from app.models import Imagem, MetricaTalhao, Praga, Produto, Talhao
 from app.models.enums import ClasseProduto, Finalidade, Sistema, StatusImagem, TipoImagem
+from app.services.assistente import assistenteModelos
 from app.services.assistente import assistenteService as assistente
 from app.services.assistente.assistenteTools import criar_tools
 from app.services.diagnosticos import diagnosticosService
@@ -175,3 +178,141 @@ def test_chat_devolve_os_paineis_das_tools(client, db, agronomo_token, monkeypat
     corpo = r.json()
     assert corpo["resposta"] == "Veja o gráfico."
     assert [p["tipo"] for p in corpo["paineis"]] == ["grafico_linhas"]
+
+
+# ---------------------------------------------------------------- cota, modelos de reserva e cache
+
+
+def _erro_429(atraso="3600s"):
+    corpo = {
+        "error": {
+            "code": 429,
+            "details": [
+                {"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]},
+                {"retryDelay": atraso},
+            ],
+        }
+    }
+    return errors.ClientError(429, corpo)
+
+
+def _cliente_falso(monkeypatch, comportamento, chamadas):
+    """Instala um Gemini falso: `comportamento(modelo, config)` devolve o texto ou levanta o erro."""
+
+    class ClienteFalso:
+        def __init__(self, api_key, http_options=None):
+            self.models = SimpleNamespace(generate_content=self._gerar)
+
+        def _gerar(self, model, contents, config):
+            chamadas.append(model)
+            return SimpleNamespace(text=comportamento(model, config))
+
+    monkeypatch.setattr(settings, "gemini_api_key", "chave-falsa")
+    monkeypatch.setattr(assistente.genai, "Client", ClienteFalso)
+
+
+def _pergunta(client, token, texto):
+    return client.post("/api/assistente/chat", json={"mensagem": texto}, headers=auth(token))
+
+
+def test_cadeia_de_modelos_e_espera_do_erro():
+    principal, leve = settings.gemini_modelo, settings.gemini_modelo_leve
+    assert assistenteModelos.cadeia()[:2] == [principal, leve]
+    assert assistenteModelos.cadeia(leve_primeiro=True)[0] == leve
+    assert len(set(assistenteModelos.cadeia())) == len(assistenteModelos.cadeia())  # sem repetir
+    assert assistenteModelos.segundos_do_erro(_erro_429("55739s")) == 55739
+    assert (
+        assistenteModelos.segundos_do_erro(errors.ClientError(429, {})) == assistenteModelos.ESPERA_PADRAO_S
+    )
+    assert assistenteModelos.descricao_espera(55739) == "cerca de 15 h"
+    assert assistenteModelos.descricao_espera(2400) == "cerca de 40 min"
+    assert assistenteModelos.descricao_espera(20) == "menos de 1 min"
+
+
+def test_modelo_de_reserva_assume_no_429_sem_duplicar_paineis(client, db, agronomo_token, monkeypatch):
+    _popular(db)
+    chamadas = []
+    principal = settings.gemini_modelo
+
+    def comportamento(modelo, config):
+        ferramentas = {f.__name__: f for f in config.tools}
+        ferramentas["mostrar_grafico"]("ndvi")  # a tentativa já registrou um painel...
+        if modelo == principal:
+            raise _erro_429()  # ...e o modelo principal estoura a cota no meio
+        return "Respondido pela reserva."
+
+    _cliente_falso(monkeypatch, comportamento, chamadas)
+    r = _pergunta(client, agronomo_token, "mostre o ndvi")
+    assert r.status_code == 200
+    corpo = r.json()
+    assert corpo["resposta"] == "Respondido pela reserva."
+    assert chamadas == [principal, settings.gemini_modelo_leve]
+    assert len(corpo["paineis"]) == 1  # o painel da tentativa abandonada foi descartado
+
+    # o principal ficou bloqueado: a próxima pergunta já começa pela reserva, sem gastar requisição nele
+    chamadas.clear()
+    assert _pergunta(client, agronomo_token, "outra pergunta").status_code == 200
+    assert chamadas == [settings.gemini_modelo_leve]
+
+
+def test_todos_sem_cota_avisa_quando_volta_e_para_de_tentar(client, agronomo_token, monkeypatch):
+    chamadas = []
+
+    def sempre_429(modelo, config):
+        raise _erro_429("7200s")
+
+    _cliente_falso(monkeypatch, sempre_429, chamadas)
+    r = _pergunta(client, agronomo_token, "oi")
+    assert r.status_code == 429 and "cerca de 2 h" in r.json()["detail"]
+    tentativas = len(chamadas)
+    assert tentativas == len(assistenteModelos.cadeia())  # tentou cada modelo uma vez
+    r2 = _pergunta(client, agronomo_token, "oi de novo")
+    assert r2.status_code == 429 and len(chamadas) == tentativas  # tudo bloqueado: nenhuma chamada nova
+
+
+def test_modelo_inexistente_e_pulado(client, agronomo_token, monkeypatch):
+    chamadas = []
+
+    def comportamento(modelo, config):
+        if modelo == settings.gemini_modelo:
+            raise errors.ClientError(404, {"error": {"code": 404}})
+        return "ok"
+
+    _cliente_falso(monkeypatch, comportamento, chamadas)
+    assert _pergunta(client, agronomo_token, "oi").json()["resposta"] == "ok"
+    assert chamadas == [settings.gemini_modelo, settings.gemini_modelo_leve]
+
+
+def test_resposta_repetida_sai_do_cache_com_os_paineis(client, db, agronomo_token, monkeypatch):
+    _popular(db)
+    chamadas = []
+
+    def comportamento(modelo, config):
+        {f.__name__: f for f in config.tools}["mostrar_grafico"]("ndvi")
+        return "Gráfico pronto."
+
+    _cliente_falso(monkeypatch, comportamento, chamadas)
+    primeira = _pergunta(client, agronomo_token, "mostre o ndvi").json()
+    segunda = _pergunta(client, agronomo_token, "mostre o ndvi").json()
+    assert len(chamadas) == 1  # a segunda não gastou requisição
+    assert primeira == segunda and len(segunda["paineis"]) == 1
+    _pergunta(client, agronomo_token, "mostre o clima")  # pergunta diferente: chama de novo
+    assert len(chamadas) == 2
+
+
+def test_resumo_dos_talhoes_vai_no_prompt_e_o_limite_de_passos_e_menor(
+    client, db, agronomo_token, monkeypatch
+):
+    _popular(db)
+    visto = {}
+
+    def comportamento(modelo, config):
+        visto["sistema"] = config.system_instruction
+        visto["passos"] = config.automatic_function_calling.maximum_remote_calls
+        return "ok"
+
+    _cliente_falso(monkeypatch, comportamento, [])
+    _pergunta(client, agronomo_token, "quantos talhões?")
+    assert "T1" in visto["sistema"] and "id | nome" in visto["sistema"]  # o modelo já sabe os ids
+    assert "paralelo" in visto["sistema"]
+    assert visto["passos"] == assistente.MAX_CHAMADAS_TOOLS == 4

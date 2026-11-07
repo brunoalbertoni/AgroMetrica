@@ -67,3 +67,15 @@ def agronomo_token(client, db):
 
 def auth(token):
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def _estado_do_assistente_limpo():
+    """Cota bloqueada e cache de respostas são estado em memória: não podem vazar entre testes."""
+    from app.services.assistente import assistenteModelos, assistenteService
+
+    assistenteModelos.limpar()
+    assistenteService.limpar_cache()
+    yield
+    assistenteModelos.limpar()
+    assistenteService.limpar_cache()

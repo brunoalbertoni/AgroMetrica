@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models import MensagemCampo, Talhao, Usuario
 from app.models.enums import CategoriaCampo, DestinoCampo
-from app.services.assistente import assistenteService
+from app.services.assistente import assistenteModelos, assistenteService
 
 log = logging.getLogger("campo")
 
@@ -125,21 +125,31 @@ SOLO = análise ou correção de solo, adubação, pH, nutrientes. PRAGA = praga
 CLIMA = chuva, vento, geada, seca. MANEJO = plantio, colheita, aplicações, operações das máquinas.
 OBSERVACAO = anotação geral de campo. OUTROS = o que não se encaixa.
 <mensagem>{texto}</mensagem>"""
-    try:
-        cliente = genai.Client(
-            api_key=settings.gemini_api_key,
-            http_options=types.HttpOptions(timeout=15_000, retry_options=types.HttpRetryOptions(attempts=1)),
-        )
-        resposta = cliente.models.generate_content(
-            model=settings.gemini_modelo,
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
-        )
-        dados = json.loads(resposta.text)
-        categoria = CategoriaCampo(str(dados["categoria"]).upper())
-    except (errors.APIError, httpx.HTTPError, ValueError, TypeError, KeyError) as erro:
-        log.warning("Classificação por IA indisponível (%s): usando palavras-chave", erro)
-        return None
+    cliente = genai.Client(
+        api_key=settings.gemini_api_key,
+        http_options=types.HttpOptions(timeout=15_000, retry_options=types.HttpRetryOptions(attempts=1)),
+    )
+    # Classificar é tarefa simples: começa pelos modelos leves e deixa o principal para o chat.
+    for modelo in assistenteModelos.disponiveis(leve_primeiro=True):
+        try:
+            resposta = cliente.models.generate_content(
+                model=modelo,
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
+            )
+            dados = json.loads(resposta.text)
+            categoria = CategoriaCampo(str(dados["categoria"]).upper())
+            break
+        except errors.APIError as erro:
+            if assistenteModelos.tratar_cota(modelo, erro):
+                continue  # sem cota neste modelo: tenta o próximo
+            log.warning("Classificação por IA indisponível (%s): usando palavras-chave", erro)
+            return None
+        except (httpx.HTTPError, ValueError, TypeError, KeyError) as erro:
+            log.warning("Classificação por IA sem resposta aproveitável (%s): usando palavras-chave", erro)
+            return None
+    else:
+        return None  # todos sem cota: palavras-chave
     talhao = next((t for t in talhoes if t.nome == dados.get("talhao")), None)
     resumo = str(dados.get("resumo") or "").strip()[:200] or None
     return {"categoria": categoria, "talhao": talhao, "resumo": resumo}

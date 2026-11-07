@@ -1,4 +1,8 @@
+import json
+from types import SimpleNamespace
+
 import pytest
+from google.genai import errors
 
 from app.core.config import settings
 from app.models import Talhao
@@ -160,3 +164,79 @@ def test_analisar_sem_chave_devolve_503(client, talhoes, agronomo_token):
     h = auth(agronomo_token)
     mid = client.post("/api/campo/mensagens", json={"texto": "teste"}, headers=h).json()["id"]
     assert client.post(f"/api/campo/mensagens/{mid}/analisar", headers=h).status_code == 503
+
+
+# ---------------------------------------------------------------- classificação por IA e cota
+
+
+def _gemini_falso(monkeypatch, comportamento, chamadas):
+    class ClienteFalso:
+        def __init__(self, api_key, http_options=None):
+            self.models = SimpleNamespace(generate_content=self._gerar)
+
+        def _gerar(self, model, contents, config):
+            chamadas.append(model)
+            return SimpleNamespace(text=comportamento(model))
+
+    monkeypatch.setattr(settings, "gemini_api_key", "chave-falsa")
+    monkeypatch.setattr(campoService.genai, "Client", ClienteFalso)
+
+
+def _json_ia(categoria="SOLO", talhao=None, resumo="pH baixo"):
+    return json.dumps({"categoria": categoria, "talhao": talhao, "resumo": resumo})
+
+
+def test_classificacao_comeca_pelo_modelo_leve_e_guarda_o_resumo(
+    client, talhoes, agronomo_token, monkeypatch
+):
+    chamadas = []
+    _gemini_falso(monkeypatch, lambda modelo: _json_ia("SOLO", "Silagem 4.0", "pH baixo no talhão"), chamadas)
+    r = client.post("/api/campo/mensagens", json={"texto": "coletei amostra"}, headers=auth(agronomo_token))
+    m = r.json()
+    assert chamadas == [settings.gemini_modelo_leve]  # o principal fica para o chat
+    assert (m["categoria"], m["talhao_nome"], m["resumo"], m["classificada_por_ia"]) == (
+        "SOLO",
+        "Silagem 4.0",
+        "pH baixo no talhão",
+        True,
+    )
+
+
+def test_classificacao_cai_para_o_proximo_modelo_no_429(client, talhoes, agronomo_token, monkeypatch):
+    chamadas = []
+    leve = settings.gemini_modelo_leve
+
+    def comportamento(modelo):
+        if modelo == leve:
+            raise errors.ClientError(429, {"error": {"details": [{"retryDelay": "3600s"}]}})
+        return _json_ia("CLIMA")
+
+    _gemini_falso(monkeypatch, comportamento, chamadas)
+    m = client.post("/api/campo/mensagens", json={"texto": "mensagem"}, headers=auth(agronomo_token)).json()
+    assert m["categoria"] == "CLIMA" and m["classificada_por_ia"] is True
+    assert chamadas[0] == leve and chamadas[1] != leve
+
+
+def test_sem_cota_em_nenhum_modelo_usa_palavras_chave(client, talhoes, agronomo_token, monkeypatch):
+    def sempre_429(modelo):
+        raise errors.ClientError(429, {})
+
+    _gemini_falso(monkeypatch, sempre_429, [])
+    m = client.post(
+        "/api/campo/mensagens", json={"texto": "muita lagarta hoje"}, headers=auth(agronomo_token)
+    ).json()
+    assert m["categoria"] == "PRAGA" and m["classificada_por_ia"] is False and m["resumo"] is None
+
+
+def test_resposta_invalida_da_ia_cai_para_palavras_chave(client, talhoes, agronomo_token, monkeypatch):
+    _gemini_falso(monkeypatch, lambda modelo: "isto não é json", [])
+    m = client.post("/api/campo/mensagens", json={"texto": "pH baixo"}, headers=auth(agronomo_token)).json()
+    assert m["categoria"] == "SOLO" and m["classificada_por_ia"] is False
+
+
+def test_ia_nao_pode_inventar_categoria(client, talhoes, agronomo_token, monkeypatch):
+    _gemini_falso(monkeypatch, lambda modelo: _json_ia("APAGAR_TUDO"), [])
+    m = client.post(
+        "/api/campo/mensagens", json={"texto": "dia tranquilo"}, headers=auth(agronomo_token)
+    ).json()
+    assert m["categoria"] == "OBSERVACAO" and m["classificada_por_ia"] is False

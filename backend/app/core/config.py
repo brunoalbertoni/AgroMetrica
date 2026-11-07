@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     gemini_api_key: str = ""
     gemini_modelo: str = "gemini-3-flash-preview"
+    gemini_modelo_leve: str = "gemini-flash-lite-latest"  # tarefas simples e 1º reserva
+    gemini_modelos_reserva: str = "gemini-3.1-flash-lite-preview"  # separados por vírgula
 
     @field_validator("jwt_secret")
     @classmethod
