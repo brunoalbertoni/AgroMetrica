@@ -6,8 +6,8 @@ import { listarAlertas, marcarLido } from '../../api/alertas/AlertasApi'
 import { dataCurta } from '../../compartilhado/format'
 
 const TOM = {
-  ALTA: { faixa: 'bg-alarm text-white', ponto: 'bg-alarm', rotulo: 'dano' },
-  MEDIA: { faixa: 'bg-straw text-ink', ponto: 'bg-straw', rotulo: 'atenção' },
+  ALTA: { faixa: 'bg-alarm-strong text-white', ponto: 'bg-alarm', rotulo: 'dano' },
+  MEDIA: { faixa: 'bg-straw text-[#1f2a24]', ponto: 'bg-straw', rotulo: 'atenção' },
 }
 
 /** Faixa de alertas não lidos. Atualiza a cada 60 s. Vermelho = ALTA, amarelo = MÉDIA. */

@@ -117,7 +117,7 @@ export default function AssistentePainel() {
           onClick={() => setAberto(true)}
           aria-label="Abrir o assistente"
           title={NOME}
-          className="fixed bottom-6 right-6 z-40 h-16 w-16 overflow-hidden rounded-full shadow-lg ring-4 ring-white transition hover:scale-105 hover:shadow-xl"
+          className="fixed bottom-6 right-6 z-40 h-16 w-16 overflow-hidden rounded-full shadow-lg ring-4 ring-panel transition hover:scale-105 hover:shadow-xl"
         >
           <img src={AVATAR} alt="" className="h-full w-full" />
         </button>
@@ -136,7 +136,7 @@ export default function AssistentePainel() {
         <aside
           role="dialog"
           aria-label={NOME}
-          className="fixed bottom-4 right-0 top-4 z-50 flex w-[calc(100%-1rem)] flex-col overflow-hidden rounded-l-xl border border-r-0 border-line bg-white shadow-2xl md:w-[440px]"
+          className="fixed bottom-4 right-0 top-4 z-50 flex w-[calc(100%-1rem)] flex-col overflow-hidden rounded-l-xl border border-r-0 border-line bg-panel shadow-2xl md:w-[440px]"
         >
           <header className="flex items-center justify-between border-b border-line px-4 py-3">
             <div className="flex items-center gap-2.5">
@@ -205,7 +205,7 @@ export default function AssistentePainel() {
                       key={s}
                       type="button"
                       onClick={() => enviar(s)}
-                      className="rounded-full border border-line px-3 py-1.5 text-left text-[13px] text-canopy-dark hover:bg-canopy-soft"
+                      className="rounded-full border border-line px-3 py-1.5 text-left text-[13px] text-canopy hover:bg-canopy-soft"
                     >
                       {s}
                     </button>
@@ -249,7 +249,7 @@ export default function AssistentePainel() {
                 onClick={() => enviar()}
                 disabled={enviando || !texto.trim()}
                 aria-label="Enviar"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-canopy text-white hover:bg-canopy-dark disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-white hover:bg-primary-hover disabled:opacity-40"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
                   <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />

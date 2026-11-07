@@ -1,3 +1,4 @@
+import SeletorTema from '../../compartilhado/SeletorTema'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
@@ -31,7 +32,8 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen md:grid-cols-[1.1fr_1fr]">
+    <div className="relative grid min-h-screen md:grid-cols-[1.1fr_1fr]">
+      <SeletorTema variante="pagina" className="absolute right-4 top-4 z-10" />
       <div className="relative hidden overflow-hidden bg-canopy-dark md:block" aria-hidden>
         {/* Linhas de plantio: faixas diagonais que lembram a lavoura vista do drone */}
         <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 400 600">

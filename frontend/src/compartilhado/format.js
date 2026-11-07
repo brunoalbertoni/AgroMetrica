@@ -65,5 +65,5 @@ export const CLASSE_PRODUTO = {
 export const PERFIL = { ADMIN: 'Administrador', AGRONOMO: 'Agrônomo' }
 
 /** Cor de série por sistema (validada para daltonismo); silagem usa linha tracejada. */
-export const COR_SISTEMA = { AGRO_4_0: '#00836b', CONVENCIONAL: '#6a4fb0' }
+export const COR_SISTEMA = { AGRO_4_0: 'var(--color-serie-40)', CONVENCIONAL: 'var(--color-serie-conv)' }
 export const COR_SEVERIDADE = { ALTA: '#c2362b', MEDIA: '#d9a21b', BAIXA: '#5d6b62' }

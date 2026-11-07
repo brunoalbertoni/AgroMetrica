@@ -19,9 +19,39 @@
   --color-straw-soft: #fbf1d6;
   --color-alarm: #c2362b;
   --color-alarm-soft: #f9e1de;
+  /* pares de contraste que mudam entre claro e escuro */
+  --color-primary: #2f6b3f; /* fundo de botão com texto branco */
+  --color-primary-hover: #1d4a2a;
+  --color-alarm-strong: #c2362b; /* etiqueta de dano (texto branco) */
+  --color-straw-text: #9a7210; /* dourado legível como texto */
 
   --font-display: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
   --font-sans: 'Public Sans', system-ui, sans-serif;
+}
+
+/* Modo escuro: o tema é escolhido em <html data-theme="dark"> (ver compartilhado/tema.js).
+   Verdes mais claros para texto e acentos; fundos de botão e etiquetas mantêm contraste com texto branco. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-paper: #0d130f;
+  --color-panel: #151d17;
+  --color-ink: #e6ede8;
+  --color-muted: #97a69c;
+  --color-line: #2a372d;
+  --color-canopy: #67bd82;
+  --color-canopy-dark: #123020;
+  --color-canopy-soft: #1c3426;
+  --color-serie-40: #3fd2b0;
+  --color-serie-conv: #a994ee;
+  --color-serie-conv-soft: #28233f;
+  --color-straw: #e2b13c;
+  --color-straw-soft: #3a3115;
+  --color-alarm: #f07a6d;
+  --color-alarm-soft: #3f1f1b;
+  --color-primary: #2f7d4a;
+  --color-primary-hover: #3a9159;
+  --color-alarm-strong: #c2362b;
+  --color-straw-text: #e2b13c;
 }
 
 @layer base {
@@ -103,4 +133,27 @@
   .painel-item {
     animation: none;
   }
+}
+
+/* Leaflet (popups, zoom e crédito) acompanha o tema escuro; a imagem de satélite não muda */
+:root[data-theme='dark'] .leaflet-popup-content-wrapper,
+:root[data-theme='dark'] .leaflet-popup-tip {
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.5);
+}
+:root[data-theme='dark'] .leaflet-bar a {
+  background: var(--color-panel);
+  color: var(--color-ink);
+  border-bottom-color: var(--color-line);
+}
+:root[data-theme='dark'] .leaflet-bar a:hover {
+  background: var(--color-canopy-soft);
+}
+:root[data-theme='dark'] .leaflet-container .leaflet-control-attribution {
+  background: rgb(13 19 15 / 0.75);
+  color: var(--color-muted);
+}
+:root[data-theme='dark'] .leaflet-container .leaflet-control-attribution a {
+  color: var(--color-canopy);
 }

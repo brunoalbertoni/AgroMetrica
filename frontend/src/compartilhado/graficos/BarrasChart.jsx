@@ -12,7 +12,7 @@ import {
 
 import { dataCurta, data as fmtData, numero } from '../format'
 
-const EIXO = { stroke: '#5d6b62', fontSize: 12 }
+const EIXO = { stroke: 'var(--color-muted)', fill: 'var(--color-muted)', fontSize: 12 }
 
 function Dica({ active, payload, label, casas, unidade, rotuloX }) {
   if (!active || !payload?.length) return null
@@ -56,13 +56,13 @@ export default function BarrasChart({
     <div style={{ height: altura }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={dados} margin={{ top: 8, right: 16, left: 0, bottom: 0 }} barGap={2}>
-          <CartesianGrid stroke="#e7eae3" vertical={false} />
+          <CartesianGrid stroke="var(--color-line)" strokeOpacity={0.6} vertical={false} />
           <XAxis
             dataKey="x"
             tickFormatter={eixoData ? dataCurta : undefined}
             tick={EIXO}
             tickLine={false}
-            axisLine={{ stroke: '#d8ddd3' }}
+            axisLine={{ stroke: 'var(--color-line)' }}
             minTickGap={16}
           />
           <YAxis
@@ -74,10 +74,14 @@ export default function BarrasChart({
           />
           <Tooltip
             content={<Dica casas={casas} unidade={unidade} rotuloX={rotuloX} />}
-            cursor={{ fill: '#1f2a2410' }}
+            cursor={{ fill: 'var(--color-ink)', fillOpacity: 0.07 }}
           />
           {barras.length > 1 && (
-            <Legend verticalAlign="top" height={28} wrapperStyle={{ fontSize: 12, color: '#1f2a24' }} />
+            <Legend
+              verticalAlign="top"
+              height={28}
+              wrapperStyle={{ fontSize: 12, color: 'var(--color-ink)' }}
+            />
           )}
           {barras.map((b) => (
             <Bar

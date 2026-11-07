@@ -5,7 +5,10 @@ import { BrowserRouter } from 'react-router-dom'
 
 import { AuthProvider } from './stores/auth/AuthContext.jsx'
 import './index.css'
+import { iniciarTema } from './compartilhado/tema'
 import AppRoutes from './app/AppRoutes.jsx'
+
+iniciarTema()
 
 const queryClient = new QueryClient({
   defaultOptions: {

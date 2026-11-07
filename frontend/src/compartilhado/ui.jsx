@@ -29,7 +29,7 @@ export function Panel({ titulo, acao, children, className = '' }) {
 }
 
 const VARIANTES = {
-  primario: 'bg-canopy text-white hover:bg-canopy-dark disabled:bg-canopy/50',
+  primario: 'bg-primary text-white hover:bg-primary-hover disabled:bg-primary/50',
   secundario:
     'border border-line bg-panel text-ink hover:border-canopy hover:text-canopy disabled:opacity-50',
   perigo: 'border border-alarm/40 bg-panel text-alarm hover:bg-alarm-soft disabled:opacity-50',
@@ -59,13 +59,13 @@ export function Field({ label, erro, children, dica }) {
 }
 
 export const inputClass =
-  'w-full rounded border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-canopy focus:outline-none focus:ring-2 focus:ring-canopy/20'
+  'w-full rounded border border-line bg-panel px-3 py-2 text-sm text-ink placeholder:text-muted/70 focus:border-canopy focus:outline-none focus:ring-2 focus:ring-canopy/20'
 
 export function SeverityBadge({ severidade }) {
   if (!severidade) return <span className="text-muted">—</span>
   const estilo = {
-    ALTA: 'bg-alarm text-white',
-    MEDIA: 'bg-straw text-ink',
+    ALTA: 'bg-alarm-strong text-white',
+    MEDIA: 'bg-straw text-[#1f2a24]',
     BAIXA: 'bg-line text-ink',
   }[severidade]
   return (
@@ -115,7 +115,7 @@ export function Loading({ texto = 'Carregando…' }) {
 }
 
 export function Stat({ rotulo, valor, detalhe, tom }) {
-  const cor = { alarm: 'text-alarm', straw: 'text-[#9a7210]', canopy: 'text-canopy' }[tom] ?? 'text-ink'
+  const cor = { alarm: 'text-alarm', straw: 'text-straw-text', canopy: 'text-canopy' }[tom] ?? 'text-ink'
   return (
     <div className="rounded-md border border-line bg-panel px-4 py-3">
       <p className="text-sm text-muted">{rotulo}</p>
@@ -137,7 +137,7 @@ export function Modal({ aberto, titulo, onFechar, children }) {
     <dialog
       ref={ref}
       onClose={onFechar}
-      className="m-auto w-[min(560px,calc(100vw-2rem))] rounded-md border border-line bg-panel p-0 text-ink backdrop:bg-ink/40"
+      className="m-auto w-[min(560px,calc(100vw-2rem))] rounded-md border border-line bg-panel p-0 text-ink backdrop:bg-black/50"
     >
       <div className="flex items-center justify-between border-b border-line px-5 py-3">
         <h2 className="text-xl font-semibold">{titulo}</h2>

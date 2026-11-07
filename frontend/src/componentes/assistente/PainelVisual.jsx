@@ -158,7 +158,7 @@ export default function PainelVisual({ paineis, indice, onTrocar, onFechar }) {
   return (
     <section
       aria-label="Visualização do assistente"
-      className="painel-entra fixed bottom-4 left-0 right-4 top-4 z-[60] flex flex-col overflow-hidden rounded-r-xl border border-l-0 border-line bg-white shadow-2xl min-[1100px]:right-[calc(440px+1rem)] min-[1100px]:z-50"
+      className="painel-entra fixed bottom-4 left-0 right-4 top-4 z-[60] flex flex-col overflow-hidden rounded-r-xl border border-l-0 border-line bg-panel shadow-2xl min-[1100px]:right-[calc(440px+1rem)] min-[1100px]:z-50"
     >
       <header className="flex items-center gap-3 border-b border-line px-5 py-3">
         <h2 className="min-w-0 flex-1 truncate text-lg font-semibold">{painel.titulo}</h2>

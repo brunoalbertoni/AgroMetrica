@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // mesmo critério de src/compartilhado/tema.js, antes do CSS pintar
+      try {
+        var preferencia = localStorage.getItem('agrometrica.tema')
+        var escuro =
+          preferencia === 'escuro' ||
+          (preferencia !== 'claro' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = escuro ? 'dark' : 'light'
+      } catch (e) {
+        /* sem localStorage: o app aplica o tema ao iniciar */
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

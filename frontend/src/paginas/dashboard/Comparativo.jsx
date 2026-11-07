@@ -222,7 +222,7 @@ export default function Comparativo() {
                     cor: COR_SISTEMA[c.b.talhao.sistema],
                   },
                 ].filter((d) => d.valor != null)}
-                barras={[{ chave: 'valor', nome: 'Produtividade', cor: '#5d6b62' }]}
+                barras={[{ chave: 'valor', nome: 'Produtividade', cor: 'var(--color-muted)' }]}
                 eixoData={false}
                 corPorLinha
                 casas={0}

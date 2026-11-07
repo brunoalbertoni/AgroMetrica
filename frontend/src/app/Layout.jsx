@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '../stores/auth/AuthContext'
+import SeletorTema from '../compartilhado/SeletorTema'
 import { PERFIL } from '../compartilhado/format'
 import AlertBar from '../componentes/alertas/AlertBar'
 import AssistentePainel from '../componentes/assistente/AssistentePainel'
@@ -44,9 +45,12 @@ export default function Layout() {
       <aside className="bg-canopy-dark text-white md:sticky md:top-0 md:flex md:h-screen md:flex-col">
         <div className="flex items-center justify-between px-5 py-4 md:py-6">
           <Marca />
-          <button type="button" onClick={sair} className="text-sm text-white/80 hover:text-white md:hidden">
-            Sair
-          </button>
+          <div className="flex items-center gap-3 md:hidden">
+            <SeletorTema />
+            <button type="button" onClick={sair} className="text-sm text-white/80 hover:text-white">
+              Sair
+            </button>
+          </div>
         </div>
         <nav className="sem-barra flex gap-1 overflow-x-auto px-3 pb-3 md:flex-1 md:flex-col md:overflow-visible md:pb-0">
           {links.map((l) => (
@@ -56,7 +60,7 @@ export default function Layout() {
               end={l.end}
               className={({ isActive }) =>
                 `whitespace-nowrap rounded px-3 py-2 text-sm font-medium ${
-                  isActive ? 'bg-white text-canopy-dark' : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  isActive ? 'bg-panel text-canopy' : 'text-white/85 hover:bg-white/10 hover:text-white'
                 }`
               }
             >
@@ -67,6 +71,9 @@ export default function Layout() {
         <div className="hidden border-t border-white/15 px-5 py-4 text-sm md:block">
           <p className="font-medium">{usuario?.nome}</p>
           <p className="text-white/70">Perfil: {PERFIL[usuario?.perfil]}</p>
+          <div className="mt-3">
+            <SeletorTema />
+          </div>
           <button
             type="button"
             onClick={sair}

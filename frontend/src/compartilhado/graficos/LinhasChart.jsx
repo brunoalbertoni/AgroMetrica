@@ -12,7 +12,7 @@ import {
 
 import { COR_SEVERIDADE, data as fmtData, dataCurta, numero } from '../format'
 
-const EIXO = { stroke: '#5d6b62', fontSize: 12 }
+const EIXO = { stroke: 'var(--color-muted)', fill: 'var(--color-muted)', fontSize: 12 }
 
 /** Junta várias séries [{data, valor}] em linhas {data, [id]: valor} ordenadas por data. */
 function mesclar(series) {
@@ -51,7 +51,7 @@ function rotuloFinal(serie, total) {
   return function Rotulo({ x, y, index }) {
     if (index !== total - 1 || x === undefined) return null
     return (
-      <text x={x + 6} y={y} dy={4} fontSize={11} fill="#1f2a24">
+      <text x={x + 6} y={y} dy={4} fontSize={11} fill="var(--color-ink)">
         {serie.rotuloCurto ?? serie.nome}
       </text>
     )
@@ -85,13 +85,13 @@ export default function LinhasChart({
           data={linhas}
           margin={{ top: 8, right: rotulosDiretos && multiplas ? 136 : 16, left: 0, bottom: 0 }}
         >
-          <CartesianGrid stroke="#e7eae3" vertical={false} />
+          <CartesianGrid stroke="var(--color-line)" strokeOpacity={0.6} vertical={false} />
           <XAxis
             dataKey="data"
             tickFormatter={dataCurta}
             tick={EIXO}
             tickLine={false}
-            axisLine={{ stroke: '#d8ddd3' }}
+            axisLine={{ stroke: 'var(--color-line)' }}
             minTickGap={24}
           />
           <YAxis
@@ -104,14 +104,14 @@ export default function LinhasChart({
           />
           <Tooltip
             content={<DicaTooltip casas={casas} unidade={unidade} />}
-            cursor={{ stroke: '#5d6b62', strokeDasharray: '3 3' }}
+            cursor={{ stroke: 'var(--color-muted)', strokeDasharray: '3 3' }}
           />
           {multiplas && (
             <Legend
               verticalAlign="top"
               height={28}
               iconType="plainline"
-              wrapperStyle={{ fontSize: 12, color: '#1f2a24' }}
+              wrapperStyle={{ fontSize: 12, color: 'var(--color-ink)' }}
             />
           )}
           {eventos.map((e, i) => (
@@ -133,7 +133,7 @@ export default function LinhasChart({
               strokeWidth={2}
               strokeDasharray={s.tracejado ? '6 4' : undefined}
               dot={false}
-              activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 4, stroke: 'var(--color-panel)', strokeWidth: 2 }}
               connectNulls
               isAnimationActive={animado}
               animationDuration={900}

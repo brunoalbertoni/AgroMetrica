@@ -26,10 +26,10 @@ export default function ImageCompare({ original, processada, rotulo = 'Processad
           className="pointer-events-none absolute inset-y-0 w-0.5 bg-white shadow"
           style={{ left: `${posicao}%` }}
         />
-        <span className="absolute left-2 top-2 rounded-sm bg-ink/75 px-2 py-0.5 text-xs text-white">
+        <span className="absolute left-2 top-2 rounded-sm bg-black/70 px-2 py-0.5 text-xs text-white">
           Original
         </span>
-        <span className="absolute right-2 top-2 rounded-sm bg-ink/75 px-2 py-0.5 text-xs text-white">
+        <span className="absolute right-2 top-2 rounded-sm bg-black/70 px-2 py-0.5 text-xs text-white">
           {rotulo}
         </span>
       </div>
