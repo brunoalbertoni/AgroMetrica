@@ -3,6 +3,7 @@ from app.models.diagnostico import Diagnostico
 from app.models.imagem import Imagem
 from app.models.leitura_clima import LeituraClima
 from app.models.leitura_solo import LeituraSolo
+from app.models.mensagem_campo import MensagemCampo
 from app.models.metrica_talhao import MetricaTalhao
 from app.models.operacao_talhao import OperacaoTalhao
 from app.models.praga import Praga
@@ -19,6 +20,7 @@ __all__ = [
     "Imagem",
     "LeituraClima",
     "LeituraSolo",
+    "MensagemCampo",
     "MetricaTalhao",
     "OperacaoTalhao",
     "Praga",

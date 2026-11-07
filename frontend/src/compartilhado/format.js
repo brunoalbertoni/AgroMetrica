@@ -67,3 +67,27 @@ export const PERFIL = { ADMIN: 'Administrador', AGRONOMO: 'Agrônomo' }
 /** Cor de série por sistema (validada para daltonismo); silagem usa linha tracejada. */
 export const COR_SISTEMA = { AGRO_4_0: 'var(--color-serie-40)', CONVENCIONAL: 'var(--color-serie-conv)' }
 export const COR_SEVERIDADE = { ALTA: '#c2362b', MEDIA: '#d9a21b', BAIXA: '#5d6b62' }
+
+export const CATEGORIA_CAMPO = {
+  SOLO: 'Solo',
+  PRAGA: 'Pragas e doenças',
+  CLIMA: 'Clima',
+  MANEJO: 'Manejo',
+  OBSERVACAO: 'Observações',
+  OUTROS: 'Outros',
+}
+/** Cores (fundo e texto) de cada categoria, usando os tokens do tema claro e escuro. */
+export const COR_CATEGORIA_CAMPO = {
+  SOLO: 'bg-straw-soft text-straw-text',
+  PRAGA: 'bg-alarm-soft text-alarm',
+  CLIMA: 'bg-serie-conv-soft text-serie-conv',
+  MANEJO: 'bg-canopy-soft text-canopy',
+  OBSERVACAO: 'bg-line/60 text-ink',
+  OUTROS: 'bg-line/60 text-muted',
+}
+export const DESTINO_CAMPO = {
+  CAIXA_DE_ENTRADA: 'Caixa de entrada',
+  ANOTACAO: 'Anotação',
+  DADO_SOLO: 'Dado de solo',
+  DESCARTADA: 'Descartada',
+}

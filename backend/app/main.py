@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from app.controllers.alertas import alertasController as alertas
 from app.controllers.assistente import assistenteController as assistente
 from app.controllers.auth import authController as auth
+from app.controllers.campo import campoController as campo
 from app.controllers.dashboard import dashboardController as dashboard
 from app.controllers.diagnosticos import diagnosticosController as diagnosticos
 from app.controllers.imagens import imagensController as imagens
@@ -56,6 +57,7 @@ _ROUTERS = (
     alertas.router,
     dashboard.router,
     assistente.router,
+    campo.router,
 )
 for _r in _ROUTERS:
     app.include_router(_r, prefix="/api")

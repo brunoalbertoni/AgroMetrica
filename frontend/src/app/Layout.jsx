@@ -11,6 +11,7 @@ const LINKS = [
   { to: '/talhoes', rotulo: 'Talhões' },
   { to: '/diagnosticos', rotulo: 'Diagnósticos' },
   { to: '/comparativo', rotulo: '4.0 × Convencional' },
+  { to: '/campo', rotulo: 'Caderno de campo' },
   { to: '/upload', rotulo: 'Enviar dados' },
   { to: '/pragas', rotulo: 'Pragas' },
   { to: '/produtos', rotulo: 'Produtos' },

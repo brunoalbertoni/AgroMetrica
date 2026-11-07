@@ -7,6 +7,7 @@ import Login from '../paginas/auth/Login'
 import PrivateRoute from './PrivateRoute'
 import RoleRoute from './RoleRoute'
 
+const CadernoDeCampo = lazy(() => import('../paginas/campo/CadernoDeCampo'))
 const Comparativo = lazy(() => import('../paginas/dashboard/Comparativo'))
 const Dashboard = lazy(() => import('../paginas/dashboard/Dashboard'))
 const DiagnosticoDetalhe = lazy(() => import('../paginas/diagnosticos/DiagnosticoDetalhe'))
@@ -28,6 +29,7 @@ export default function AppRoutes() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/talhoes" element={<Talhoes />} />
             <Route path="/talhoes/:id" element={<TalhaoDetalhe />} />
+            <Route path="/campo" element={<CadernoDeCampo />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/diagnosticos" element={<Diagnosticos />} />
             <Route path="/diagnosticos/:id" element={<DiagnosticoDetalhe />} />

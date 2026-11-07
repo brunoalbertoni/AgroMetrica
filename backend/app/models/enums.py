@@ -71,3 +71,23 @@ class TipoUpload(enum.StrEnum):
 def sa_enum(py_enum: type[enum.Enum]) -> Enum:
     """Enum do SQLAlchemy que grava o valor em texto: nativo no MySQL, CHECK no SQLite."""
     return Enum(py_enum, name=py_enum.__name__.lower(), values_callable=lambda e: [m.value for m in e])
+
+
+class CategoriaCampo(enum.StrEnum):
+    """Assunto de uma mensagem do caderno de campo (sugerido pela IA, confirmado pelo usuário)."""
+
+    SOLO = "SOLO"
+    PRAGA = "PRAGA"
+    CLIMA = "CLIMA"
+    MANEJO = "MANEJO"
+    OBSERVACAO = "OBSERVACAO"
+    OUTROS = "OUTROS"
+
+
+class DestinoCampo(enum.StrEnum):
+    """O que o usuário decidiu fazer com a mensagem."""
+
+    CAIXA_DE_ENTRADA = "CAIXA_DE_ENTRADA"  # ainda sem decisão
+    ANOTACAO = "ANOTACAO"  # fica guardada como anotação (do talhão, se houver)
+    DADO_SOLO = "DADO_SOLO"  # é dado de solo para transformar em leitura
+    DESCARTADA = "DESCARTADA"
