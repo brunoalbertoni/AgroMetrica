@@ -115,7 +115,7 @@ export default function AssistentePainel() {
         <aside
           role="dialog"
           aria-label={NOME}
-          className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col bg-white shadow-2xl md:w-[440px]"
+          className="fixed bottom-4 right-0 top-4 z-50 flex w-[calc(100%-1rem)] flex-col overflow-hidden rounded-l-xl border border-r-0 border-line bg-white shadow-2xl md:w-[440px]"
         >
           <header className="flex items-center justify-between border-b border-line px-4 py-3">
             <div className="flex items-center gap-2.5">
