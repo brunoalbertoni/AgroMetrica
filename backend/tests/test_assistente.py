@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from google.genai import errors
 
 from app.core.config import settings
-from app.models import Imagem, MetricaTalhao, Praga, Produto, Talhao
+from app.models import Imagem, LeituraClima, MetricaTalhao, Praga, Produto, Talhao
 from app.models.enums import ClasseProduto, Finalidade, Sistema, StatusImagem, TipoImagem
 from app.services.assistente import assistenteModelos
 from app.services.assistente import assistenteService as assistente
@@ -316,3 +316,93 @@ def test_resumo_dos_talhoes_vai_no_prompt_e_o_limite_de_passos_e_menor(
     assert "T1" in visto["sistema"] and "id | nome" in visto["sistema"]  # o modelo já sabe os ids
     assert "paralelo" in visto["sistema"]
     assert visto["passos"] == assistente.MAX_CHAMADAS_TOOLS == 4
+
+
+# --------------------------------------------------------- gráfico analítico (NDVI x chuva + anotações)
+
+
+def _com_clima_e_ndvi(db):
+    """Dois talhões com NDVI em datas esparsas e 8 dias de clima, com uma chuva forte no dia 6."""
+    a, b = _dois_talhoes(db)
+    db.query(MetricaTalhao).delete()
+    for talhao, valores in ((a, [0.40, 0.70, 0.30, 0.55]), (b, [0.50, 0.60, 0.58, 0.62])):
+        for dia, valor in zip((2, 4, 7, 9), valores, strict=True):
+            db.add(MetricaTalhao(talhao_id=talhao.id, data=date(2026, 1, dia), ndvi_medio=valor))
+    chuvas = {1: 0, 2: 3, 3: 0, 4: 0, 5: 12, 6: 80, 7: 0, 8: 5}
+    for dia, mm in chuvas.items():
+        db.add(LeituraClima(data_hora=datetime(2026, 1, dia, 12), chuva_mm=mm, temp_med=25.0))
+    db.commit()
+    return a, b
+
+
+def test_grafico_analitico_junta_ndvi_chuva_e_anota_os_eventos(db):
+    a, b = _com_clima_e_ndvi(db)
+    paineis = []
+    tools = {f.__name__: f for f in criar_tools(db, paineis)}
+    resumo = tools["mostrar_grafico_analitico"](talhao_ids=[a.id, b.id])
+    assert resumo["mostrado"] == "grafico_combinado"
+
+    spec = paineis[0]
+    assert set(spec["eixos"]) == {"esq", "dir"}
+    tipos = {(s["id"], s["tipo"], s["eixo"]) for s in spec["series"]}
+    assert (f"t{a.id}", "linha", "esq") in tipos and ("clima", "barra", "dir") in tipos
+
+    rotulos = {n["rotulo"]: n for n in spec["anotacoes"]}
+    assert rotulos["Chuva forte: 80 mm"]["data"] == "2026-01-06"
+    assert any(r.startswith("Pico de NDVI 0,70") for r in rotulos)
+    assert any(r.startswith("NDVI caiu 0,40") for r in rotulos)  # T1: 0,70 -> 0,30
+    assert [n["id"] for n in spec["anotacoes"]] == list(range(1, len(spec["anotacoes"]) + 1))
+    datas = [n["data"] for n in spec["anotacoes"]]
+    assert datas == sorted(datas)  # em ordem de data
+
+    # o modelo recebe números para analisar, e o aviso de que a chuva é da fazenda toda
+    assert resumo["chuva"]["total_mm"] == 100 and resumo["chuva"]["dias_com_chuva"] == 4
+    assert "UMA estação" in resumo["chuva"]["obs"]
+    antes_depois = next(x for x in resumo["ndvi_antes_e_depois_das_chuvas_fortes"] if "80 mm" in x["chuva"])
+    assert antes_depois["data"] == "2026-01-06"
+    t1 = next(x for x in antes_depois["talhoes"] if x["nome"] == "T1")
+    assert (t1["ndvi_antes"], t1["ndvi_depois"]) == (0.70, 0.30)
+
+
+def test_notas_do_modelo_entram_com_limite_e_validacao(db):
+    a, _ = _com_clima_e_ndvi(db)
+    paineis = []
+    tools = {f.__name__: f for f in criar_tools(db, paineis)}
+    resumo = tools["mostrar_grafico_analitico"](
+        talhao_ids=[a.id],
+        notas=[
+            "2026-01-05: chuva moderada antes da queda",
+            "2026-01-07 : segunda nota",
+            "data-ruim: x",  # data inválida
+            "2030-01-01: fora do período",  # fora do período
+        ],
+    )
+    notas = [n for n in paineis[0]["anotacoes"] if n["tipo"] == "ia"]
+    assert [n["rotulo"] for n in notas] == ["chuva moderada antes da queda", "segunda nota"]
+    assert resumo["notas_do_modelo_ignoradas"] == 1  # só 3 cabem; destas, 1 é inválida
+
+
+def test_grafico_analitico_sem_anotacoes_e_so_com_ndvi(db):
+    a, _ = _com_clima_e_ndvi(db)
+    paineis = []
+    tools = {f.__name__: f for f in criar_tools(db, paineis)}
+    tools["mostrar_grafico_analitico"](talhao_ids=[a.id], complemento=None, anotar=False)
+    spec = paineis[0]
+    assert spec["anotacoes"] == [] and set(spec["eixos"]) == {"esq"}
+    assert [s["id"] for s in spec["series"]] == [f"t{a.id}"]
+
+
+def test_grafico_analitico_respeita_o_periodo_e_valida_parametros(db):
+    a, _ = _com_clima_e_ndvi(db)
+    paineis = []
+    tools = {f.__name__: f for f in criar_tools(db, paineis)}
+    tools["mostrar_grafico_analitico"](talhao_ids=[a.id], de="2026-01-05", ate="2026-01-08")
+    clima = next(s for s in paineis[0]["series"] if s["id"] == "clima")
+    assert [p["data"] for p in clima["pontos"]] == ["2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08"]
+    serie = next(s for s in paineis[0]["series"] if s["id"] == f"t{a.id}")
+    assert [p["data"] for p in serie["pontos"]] == ["2026-01-07"]
+
+    assert "erro" in tools["mostrar_grafico_analitico"](metrica="outra")
+    assert "erro" in tools["mostrar_grafico_analitico"](complemento="neve")
+    assert "erro" in tools["mostrar_grafico_analitico"](de="ontem")
+    assert "erro" in tools["mostrar_grafico_analitico"](talhao_ids=[a.id], de="2030-01-01", ate="2030-02-01")

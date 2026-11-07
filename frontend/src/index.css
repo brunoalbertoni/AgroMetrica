@@ -157,3 +157,24 @@
 :root[data-theme='dark'] .leaflet-container .leaflet-control-attribution a {
   color: var(--color-canopy);
 }
+
+/* Caixas de anotação do gráfico: aparecem em sequência depois que as linhas se desenham */
+@keyframes painel-nota {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.painel-nota {
+  animation: painel-nota 0.4s ease-out both;
+  animation-delay: var(--atraso, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .painel-nota {
+    animation: none;
+  }
+}

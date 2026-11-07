@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { COR_SISTEMA, SISTEMA, data, numero } from '../../compartilhado/format'
+import GraficoCombinado from '../../compartilhado/graficos/GraficoCombinado'
 import LinhasChart from '../../compartilhado/graficos/LinhasChart'
 import { SeverityBadge } from '../../compartilhado/ui'
 import BBoxCanvas from '../diagnosticos/BBoxCanvas'
@@ -145,7 +146,20 @@ function Galeria({ painel }) {
   )
 }
 
-const TIPOS = { grafico_linhas: Grafico, comparativo: Comparativo, galeria_pragas: Galeria }
+function Combinado({ painel }) {
+  return (
+    <div className="painel-item">
+      <GraficoCombinado painel={painel} />
+    </div>
+  )
+}
+
+const TIPOS = {
+  grafico_linhas: Grafico,
+  grafico_combinado: Combinado,
+  comparativo: Comparativo,
+  galeria_pragas: Galeria,
+}
 
 /**
  * Painel que cobre o conteúdo da página, à esquerda do chat, e desenha o que o assistente pediu

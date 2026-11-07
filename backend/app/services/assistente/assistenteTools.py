@@ -176,6 +176,29 @@ def criar_tools(db: Session, paineis: list | None = None) -> list[Callable]:
         return _exibir(paineis_svc.grafico, metrica, talhao_ids, titulo)
 
     @_segura
+    def mostrar_grafico_analitico(
+        talhao_ids: list[int] | None = None,
+        metrica: str = "ndvi",
+        complemento: str | None = "chuva",
+        de: str | None = None,
+        ate: str | None = None,
+        anotar: bool = True,
+        notas: list[str] | None = None,
+    ) -> dict:
+        """Mostra no painel um gráfico animado de análise: linhas por talhão (`metrica` 'ndvi' ou
+        'balanco_hidrico') junto com o clima da fazenda (`complemento`: 'chuva' em barras, 'temperatura'
+        ou vazio), com caixas de anotação nos eventos (chuvas fortes, pico e maior queda de NDVI, pragas
+        altas, plantio). `talhao_ids` escolhe até 4 talhões; `de` e `ate` em AAAA-MM-DD. Use quando o
+        usuário pedir gráfico com chuva, anotações, marcações ou análise. As anotações saem dos dados;
+        você pode somar até 3 `notas` no formato 'AAAA-MM-DD: texto curto', só com fatos do resumo
+        devolvido. A chuva é de UMA estação para a fazenda toda: nunca a trate como diferente entre
+        talhões. Depois de chamar, analise o gráfico no texto com os números do resumo, sem afirmar
+        causa (fale em coincidência ou hipótese)."""
+        return _exibir(
+            paineis_svc.grafico_analitico, talhao_ids, metrica, complemento, de, ate, anotar, notas
+        )
+
+    @_segura
     def mostrar_galeria_pragas(
         talhao_id: int | None = None, praga: str | None = None, severidade: str | None = None, limite: int = 4
     ) -> dict:
@@ -201,6 +224,7 @@ def criar_tools(db: Session, paineis: list | None = None) -> list[Callable]:
         listar_pragas,
         listar_produtos,
         mostrar_grafico,
+        mostrar_grafico_analitico,
         mostrar_galeria_pragas,
         mostrar_comparativo,
     ]
